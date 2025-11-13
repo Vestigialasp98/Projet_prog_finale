@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All RightsC reserved.
 
 #include "ProjetProgFinalCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -39,19 +39,34 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
+	// --- MODIFICATION POUR CAMÉRA STATIQUE ---
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	
+	// Longueur de la "perche" de la caméra (distance par rapport au joueur)
+	CameraBoom->TargetArmLength = 1000.0f; 
+	
+	// On fixe la rotation du boom pour qu'il regarde d'en haut (ex: -70 degrés)
+	CameraBoom->SetRelativeRotation(FRotator(-70.0f, 0.0f, 0.0f));
+
+	// On DÉSACTIVE la rotation du boom par la souris/contrôleur
+	CameraBoom->bUsePawnControlRotation = false; 
+
+	// On s'assure que le boom ne tourne pas bizarrement si le personnage s'incline
+	CameraBoom->bInheritPitch = false;
+	CameraBoom->bInheritYaw = false;
+	CameraBoom->bInheritRoll = false;
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	
+	// La caméra elle-même ne doit pas tourner par rapport au boom
+	FollowCamera->bUsePawnControlRotation = false; 
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	// --- FIN MODIFICATION ---
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,8 +98,9 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
 
+		// --- MODIFICATION : On désactive l'input de la souris pour la caméra ---
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
+		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
 	}
 	else
 	{
@@ -117,6 +133,8 @@ void AProjetProgFinalCharacter::Move(const FInputActionValue& Value)
 
 void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 {
+	// (Cette fonction n'est plus appelée, mais on la laisse au cas où)
+	
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 

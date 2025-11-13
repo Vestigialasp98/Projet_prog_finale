@@ -61,7 +61,10 @@ protected:
 
 	virtual void NotifyControllerChanged() override;
 
+	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	// End of APawn interface
 
 public:
 	/** Returns CameraBoom subobject **/
@@ -69,4 +72,3 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
-
