@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
@@ -52,6 +53,16 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	// --- Valeurs de base du character ---
+	MaxHealth = 100;
+	CurrentHealth = 120;
+	MovementSpeed = 500.f;
+	BaseDamage = 10.f;
+
+	CurrentEXP = 0.0f;
+	EXPToNextLevel = 100.f;
+	CurrentPlayerLevel = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,4 +137,129 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AProjetProgFinalCharacter::AddEXP(float Amount)
+{
+	CurrentEXP += Amount;
+
+	bool bDidLevelUp = false;
+
+	while (CurrentEXP >= EXPToNextLevel)
+	{
+		bDidLevelUp = true;
+
+		ShowLevelUpScreen();
+
+		break;
+	}
+
+	if (!bDidLevelUp)
+	{
+		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
+	}
+}
+
+TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumOptions)
+{
+	// Variable locale
+	TArray<UDA_UpgradeBase*> ValidOptions;
+
+	// Vérifie chacun des upgrades
+	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
+	{
+		if (!Upgrade) continue;
+
+		// Check dans les upgrades déjà prises
+		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
+
+		// S'il est pas déjà trouvé ou pas niveau max
+		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
+		{
+			// Ajout aux options valides
+			ValidOptions.Add(Upgrade);
+		}
+	}
+
+	// --- MÉLANGE ALÉATOIRE ---
+	TArray<UDA_UpgradeBase*> FinalOptions;
+
+	// Copie de nos options valides pour pouvoir les modifie
+	TArray<UDA_UpgradeBase*> TempOptions = ValidOptions;
+
+	// Pour ne pas avoir plus d'options qu'il y en a
+	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
+
+	// Pige le nombre d'options désiré
+	for (int32 i = 0; i < NumToPick; ++i)
+	{
+		// On pige un index aléatoire
+		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
+
+		// On ajoute l'option à l'array final
+		FinalOptions.Add(TempOptions[RandIndex]);
+
+		// On retire l'option de l'array temporaire pour ne pas la reprendre
+		TempOptions.RemoveAt(RandIndex);
+	}
+
+	// On le retourne
+	return FinalOptions;
+}
+
+void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
+{
+	if (!ChosenUpgrade) return;
+
+	// Mettre à jour le niveau
+	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
+	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
+
+	// Gérer la logique de Level Up
+	CurrentPlayerLevel++;
+	CurrentEXP -= EXPToNextLevel;
+	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP à avoir pour level up
+
+	// Appliquer les stats
+	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
+	{
+		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
+
+		// On cherche quels sont les valeurs à appliquer dans la map
+		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
+		{
+			EPlayerStatType Stat = StatPair.Key;
+			float Value = StatPair.Value;       // La valeur trouvé dans la bonne KEY de la map
+
+			// Update les valeurs dependant de la KEY dans StatsToApply
+			switch (Stat)
+			{
+			case EPlayerStatType::Health:
+				MaxHealth += Value;
+				CurrentHealth += Value;
+
+				// S'assure que la vie ne dépasse pas le max
+				if (CurrentHealth > MaxHealth)
+				{
+					CurrentHealth = MaxHealth;
+				}
+				break;
+
+			case EPlayerStatType::Speed:
+				GetCharacterMovement()->MaxWalkSpeed += Value;
+				break;
+
+			case EPlayerStatType::Damage:
+				BaseDamage += Value;
+				break;
+			}
+		}
+	}
+
+	// Relance la vérification d'EXP 
+	AddEXP(0.0f);
+
+	// Mettre à jour le UI
+	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }

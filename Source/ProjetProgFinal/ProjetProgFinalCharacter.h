@@ -5,12 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "PlayerStatType.h" // Enum des types de stats
+#include "DA_UpgradeBase.h" // DataAsset de base pour les upgrades
 #include "ProjetProgFinalCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UDA_UpgradeBase; // Idem pour DataAsset en class
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -68,5 +71,66 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+protected:
+	// --- STATS DU CHARACTER ---
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	int32 MaxHealth;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	int32 CurrentHealth;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	float MovementSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	float BaseDamage;
+
+	// --- SYSTÈME D'EXP ---
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
+	float CurrentEXP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats|XP")
+	float EXPToNextLevel;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
+	int32 CurrentPlayerLevel;
+
+	// --- SYSTÈME D'UPGRADE ---
+
+	// La liste des upgrades que le character à déjà
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")
+	TMap<UDA_UpgradeBase*, int32> OwnedUpgrades;
+
+	// La liste de tous les upgrades possibles (Remplie dans le BP)
+	UPROPERTY(EditDefaultsOnly, Category = "Upgrades")
+	TArray<UDA_UpgradeBase*> AllAvailableUpgrades;
+
+	// --- EVENEMENTS BLUEPRINT ---
+
+	// Affiche le widget de level up
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void ShowLevelUpScreen();
+
+	// Update l'EXP actuel
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void UpdateEXP_UI(float NewXP, float NewMaxXP, int32 NewLvl);
+
+public:
+	// --- FONCTIONS PUBLIQUES ---
+
+	// Ajout d'EXP
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	void AddEXP(float Amount);
+
+	// Filtre et renvoie les options d'upgrades valides
+	UFUNCTION(BlueprintCallable, Category = "Upgrades")
+	TArray<UDA_UpgradeBase*> GetUpgradeOptions(int32 NumOptions);
+
+	// Applique l'upgrade choisie au character
+	UFUNCTION(BlueprintCallable, Category = "Upgrades")
+	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 };
 
