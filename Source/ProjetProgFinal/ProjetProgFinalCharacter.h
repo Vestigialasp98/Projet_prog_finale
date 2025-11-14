@@ -74,9 +74,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-<<<<<<< HEAD
-};
-=======
 
 protected:
 	// --- STATS DU CHARACTER ---
@@ -93,7 +90,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float BaseDamage;
 
-	// --- SYSTÈME D'EXP ---
+	// --- SYSTï¿½ME D'EXP ---
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	float CurrentEXP;
@@ -104,9 +101,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
-	// --- SYSTÈME D'UPGRADE ---
+	// --- SYSTï¿½ME D'UPGRADE ---
 
-	// La liste des upgrades que le character à déjà
+	// La liste des upgrades que le character ï¿½ dï¿½jï¿½
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")
 	TMap<UDA_UpgradeBase*, int32> OwnedUpgrades;
 
@@ -140,4 +137,3 @@ public:
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 };
 
->>>>>>> UpgradeSystemBranch

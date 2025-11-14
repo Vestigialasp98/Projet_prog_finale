@@ -67,9 +67,6 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// La camÃ©ra elle-mÃªme ne doit pas tourner par rapport au boom
 	FollowCamera->bUsePawnControlRotation = false; 
 
-<<<<<<< HEAD
-	// --- FIN MODIFICATION ---
-=======
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
@@ -82,7 +79,6 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
 	CurrentPlayerLevel = 1;
->>>>>>> UpgradeSystemBranch
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,8 +156,6 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
-<<<<<<< HEAD
-=======
 }
 
 void AProjetProgFinalCharacter::AddEXP(float Amount)
@@ -190,15 +184,15 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Variable locale
 	TArray<UDA_UpgradeBase*> ValidOptions;
 
-	// Vérifie chacun des upgrades
+	// Vï¿½rifie chacun des upgrades
 	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
 	{
 		if (!Upgrade) continue;
 
-		// Check dans les upgrades déjà prises
+		// Check dans les upgrades dï¿½jï¿½ prises
 		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
 
-		// S'il est pas déjà trouvé ou pas niveau max
+		// S'il est pas dï¿½jï¿½ trouvï¿½ ou pas niveau max
 		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
 		{
 			// Ajout aux options valides
@@ -206,7 +200,7 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 		}
 	}
 
-	// --- MÉLANGE ALÉATOIRE ---
+	// --- Mï¿½LANGE ALï¿½ATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
 	// Copie de nos options valides pour pouvoir les modifie
@@ -215,13 +209,13 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Pour ne pas avoir plus d'options qu'il y en a
 	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
 
-	// Pige le nombre d'options désiré
+	// Pige le nombre d'options dï¿½sirï¿½
 	for (int32 i = 0; i < NumToPick; ++i)
 	{
-		// On pige un index aléatoire
+		// On pige un index alï¿½atoire
 		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
 
-		// On ajoute l'option à l'array final
+		// On ajoute l'option ï¿½ l'array final
 		FinalOptions.Add(TempOptions[RandIndex]);
 
 		// On retire l'option de l'array temporaire pour ne pas la reprendre
@@ -236,26 +230,26 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre à jour le niveau
+	// Mettre ï¿½ jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
-	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met ï¿½ jour la map
 
-	// Gérer la logique de Level Up
+	// Gï¿½rer la logique de Level Up
 	CurrentPlayerLevel++;
 	CurrentEXP -= EXPToNextLevel;
-	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP à avoir pour level up
+	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP ï¿½ avoir pour level up
 
 	// Appliquer les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
 
-		// On cherche quels sont les valeurs à appliquer dans la map
+		// On cherche quels sont les valeurs ï¿½ appliquer dans la map
 		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
 		{
 			EPlayerStatType Stat = StatPair.Key;
-			float Value = StatPair.Value;       // La valeur trouvé dans la bonne KEY de la map
+			float Value = StatPair.Value;       // La valeur trouvï¿½ dans la bonne KEY de la map
 
 			// Update les valeurs dependant de la KEY dans StatsToApply
 			switch (Stat)
@@ -264,7 +258,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 				MaxHealth += Value;
 				CurrentHealth += Value;
 
-				// S'assure que la vie ne dépasse pas le max
+				// S'assure que la vie ne dï¿½passe pas le max
 				if (CurrentHealth > MaxHealth)
 				{
 					CurrentHealth = MaxHealth;
@@ -282,10 +276,9 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		}
 	}
 
-	// Relance la vérification d'EXP 
+	// Relance la vï¿½rification d'EXP 
 	AddEXP(0.0f);
 
-	// Mettre à jour le UI
+	// Mettre ï¿½ jour le UI
 	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
->>>>>>> UpgradeSystemBranch
 }

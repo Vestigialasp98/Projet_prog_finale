@@ -9,12 +9,8 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-<<<<<<< HEAD
 				"Engine",
 				"AIModule"
-=======
-				"Engine"
->>>>>>> UpgradeSystemBranch
 			]
 		}
 	],
