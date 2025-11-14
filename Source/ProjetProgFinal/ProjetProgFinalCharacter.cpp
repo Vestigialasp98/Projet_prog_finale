@@ -95,7 +95,7 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
 
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
+		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
 	}
 	else
 	{
