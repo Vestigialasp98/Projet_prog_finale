@@ -55,7 +55,7 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	// --- Valeurs de base du character ---
-	MaxHealth = 100;
+	MaxHealth = 120;
 	CurrentHealth = 120;
 	MovementSpeed = 500.f;
 	BaseDamage = 10.f;
@@ -247,11 +247,11 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 				break;
 
 			case EPlayerStatType::Speed:
-				GetCharacterMovement()->MaxWalkSpeed += Value;
+				GetCharacterMovement()->MaxWalkSpeed *= Value;
 				break;
 
 			case EPlayerStatType::Damage:
-				BaseDamage += Value;
+				BaseDamage *= Value;
 				break;
 			}
 		}
