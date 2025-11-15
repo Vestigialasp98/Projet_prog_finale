@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 #include "PlayerStatType.h" // Enum des types de stats
 #include "DA_UpgradeBase.h" // DataAsset de base pour les upgrades
+#include "Components/SceneComponent.h"
 #include "ProjetProgFinalCharacter.generated.h"
 
 class USpringArmComponent;
@@ -19,7 +20,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AProjetProgFinalCharacter : public ACharacter
+class PROJETPROGFINAL_API AProjetProgFinalCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -121,6 +122,16 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
 	void UpdateEXP_UI(float NewXP, float NewMaxXP, int32 NewLvl);
 
+	//spawn point pour le poolmanager
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TObjectPtr<USceneComponent> SpawnPoint_Small;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TObjectPtr<USceneComponent> SpawnPoint_Medium;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TObjectPtr<USceneComponent> SpawnPoint_Large;
+
 public:
 	// --- FONCTIONS PUBLIQUES ---
 
@@ -135,5 +146,7 @@ public:
 	// Applique l'upgrade choisie au character
 	UFUNCTION(BlueprintCallable, Category = "Upgrades")
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
+
+	virtual void GetEnemySpawnTransforms(TArray<FTransform>& OutTransforms) const;
 };
 

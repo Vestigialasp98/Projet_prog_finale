@@ -79,6 +79,18 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
 	CurrentPlayerLevel = 1;
+
+	SpawnPoint_Small = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Small"));
+	SpawnPoint_Small->SetupAttachment(CameraBoom);
+	SpawnPoint_Small->SetRelativeLocation(FVector(-100.f, -500.f, 0.f));
+
+	SpawnPoint_Medium = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Medium"));
+	SpawnPoint_Medium->SetupAttachment(CameraBoom);
+	SpawnPoint_Medium->SetRelativeLocation(FVector(-100.f, 0.f, 0.f));
+
+	SpawnPoint_Large = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Large"));
+	SpawnPoint_Large->SetupAttachment(CameraBoom);
+	SpawnPoint_Large->SetRelativeLocation(FVector(-100.f, 500.f, 0.f));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -281,4 +293,15 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 
 	// Mettre � jour le UI
 	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
+}
+
+// --- AJOUT : Implémentation de la nouvelle fonction ---
+void AProjetProgFinalCharacter::GetEnemySpawnTransforms(TArray<FTransform>& OutTransforms) const
+{
+	OutTransforms.Empty();
+	
+	// IMPORTANT : L'ORDRE doit correspondre à l'ordre dans le PoolManager
+	if (SpawnPoint_Small) OutTransforms.Add(SpawnPoint_Small->GetComponentTransform());
+	if (SpawnPoint_Medium) OutTransforms.Add(SpawnPoint_Medium->GetComponentTransform());
+	if (SpawnPoint_Large) OutTransforms.Add(SpawnPoint_Large->GetComponentTransform());
 }
