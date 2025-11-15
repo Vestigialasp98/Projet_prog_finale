@@ -90,7 +90,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float BaseDamage;
 
-	// --- SYST�ME D'EXP ---
+	// --- SYSTEME D'EXP ---
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	float CurrentEXP;
@@ -101,7 +101,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
-	// --- SYST�ME D'UPGRADE ---
+	// --- SYSTEME D'UPGRADE ---
 
 	// La liste des upgrades que le character � d�j�
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")

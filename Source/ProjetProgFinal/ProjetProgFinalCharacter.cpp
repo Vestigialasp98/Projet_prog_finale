@@ -170,6 +170,13 @@ void AProjetProgFinalCharacter::AddEXP(float Amount)
 
 		ShowLevelUpScreen();
 
+		// Gerer la logique de Level Up
+		CurrentPlayerLevel++;
+		CurrentEXP -= EXPToNextLevel;
+		EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP avoir pour level up
+
+		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
+
 		break;
 	}
 
@@ -233,12 +240,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 	// Mettre � jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
-	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met � jour la map
-
-	// G�rer la logique de Level Up
-	CurrentPlayerLevel++;
-	CurrentEXP -= EXPToNextLevel;
-	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP � avoir pour level up
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met a jour la map
 
 	// Appliquer les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
@@ -278,7 +280,4 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 
 	// Relance la v�rification d'EXP 
 	AddEXP(0.0f);
-
-	// Mettre � jour le UI
-	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }
