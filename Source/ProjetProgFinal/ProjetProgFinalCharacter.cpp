@@ -329,6 +329,9 @@ void AProjetProgFinalCharacter::Attack()
 	//Spawn devant le joueur
 	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 150.f;
 	FRotator SpawnRotation = GetActorRotation();
+	
+	FRotator SpawnRotationVFX = GetActorRotation();
+	SpawnRotationVFX.Yaw += 180.f;
 
 	AAttackBox* HitBox = GetWorld()->SpawnActor<AAttackBox>
 		(
@@ -336,6 +339,23 @@ void AProjetProgFinalCharacter::Attack()
 			SpawnLocation,
 			SpawnRotation
 		);
+
+	// --- Spawn du VXF Slash ---
+
+	if (SlashVFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			SlashVFX,
+			SpawnLocation,
+			SpawnRotationVFX,
+			AttackBoxData->HitboxScale-0.4f
+		);
+	}
+	else
+	{
+		 UE_LOG(LogPlayerAttack, Warning, TEXT("SlashVFX not set!"));
+	}
 
 	if (HitBox)
 	{

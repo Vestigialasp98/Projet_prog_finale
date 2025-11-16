@@ -37,7 +37,7 @@ void AAttackBox::SetupHitbox(const FVector& Scale, float Duration)
 	Box->SetWorldScale3D(Scale);
 	SetLifeSpan(Duration);
 
-	DrawDebugBox(
+	/*DrawDebugBox(
 		GetWorld(),
 		GetActorLocation(),
 		Box->GetScaledBoxExtent(),
@@ -45,6 +45,6 @@ void AAttackBox::SetupHitbox(const FVector& Scale, float Duration)
 		FColor::Red,
 		false,
 		0.5f
-	);
+	);*/
 }
 

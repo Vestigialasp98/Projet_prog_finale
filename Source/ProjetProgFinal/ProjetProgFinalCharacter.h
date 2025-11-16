@@ -3,6 +3,8 @@
 #pragma once
 
 #include <AttackBox.h>
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include  "PlayerDataAsset.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -58,6 +60,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AttackBox")
 	UPlayerDataAsset* AttackBoxData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	UNiagaraSystem* SlashVFX;
 
 	FTimerHandle AttackLoopHandle;
 	
