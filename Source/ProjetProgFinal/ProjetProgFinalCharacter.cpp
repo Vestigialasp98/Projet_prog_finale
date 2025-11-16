@@ -79,6 +79,7 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
 	CurrentPlayerLevel = 1;
+	bIsChoosingUpgrade = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,22 +161,30 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 
 void AProjetProgFinalCharacter::AddEXP(float Amount)
 {
-	CurrentEXP += Amount;
+	if (bIsChoosingUpgrade)
+	{
+		CurrentEXP += Amount;
+		return;
+	}
 
+	CurrentEXP += Amount;
 	bool bDidLevelUp = false;
 
 	while (CurrentEXP >= EXPToNextLevel)
 	{
 		bDidLevelUp = true;
+		bIsChoosingUpgrade = true;
 
-		ShowLevelUpScreen();
+		float OldEXPToNextLevel = EXPToNextLevel;
 
 		// Gerer la logique de Level Up
 		CurrentPlayerLevel++;
-		CurrentEXP -= EXPToNextLevel;
 		EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP avoir pour level up
 
-		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
+		UpdateEXP_UI(0.0f, EXPToNextLevel, CurrentPlayerLevel);
+		ShowLevelUpScreen();
+
+		CurrentEXP -= OldEXPToNextLevel;
 
 		break;
 	}
@@ -191,15 +200,15 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Variable locale
 	TArray<UDA_UpgradeBase*> ValidOptions;
 
-	// V�rifie chacun des upgrades
+	// Verifie chacun des upgrades
 	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
 	{
 		if (!Upgrade) continue;
 
-		// Check dans les upgrades d�j� prises
+		// Check dans les upgrades deja prises
 		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
 
-		// S'il est pas d�j� trouv� ou pas niveau max
+		// S'il est pas deja trouve ou pas niveau max
 		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
 		{
 			// Ajout aux options valides
@@ -207,7 +216,7 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 		}
 	}
 
-	// --- M�LANGE AL�ATOIRE ---
+	// --- MELANGE ALEATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
 	// Copie de nos options valides pour pouvoir les modifie
@@ -216,13 +225,13 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Pour ne pas avoir plus d'options qu'il y en a
 	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
 
-	// Pige le nombre d'options d�sir�
+	// Pige le nombre d'options desire
 	for (int32 i = 0; i < NumToPick; ++i)
 	{
-		// On pige un index al�atoire
+		// On pige un index aleatoire
 		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
 
-		// On ajoute l'option � l'array final
+		// On ajoute l'option a l'array final
 		FinalOptions.Add(TempOptions[RandIndex]);
 
 		// On retire l'option de l'array temporaire pour ne pas la reprendre
@@ -237,7 +246,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre � jour le niveau
+	// Mettre a jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
 	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met a jour la map
@@ -247,11 +256,11 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
 
-		// On cherche quels sont les valeurs � appliquer dans la map
+		// On cherche quels sont les valeurs a appliquer dans la map
 		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
 		{
 			EPlayerStatType Stat = StatPair.Key;
-			float Value = StatPair.Value;       // La valeur trouv� dans la bonne KEY de la map
+			float Value = StatPair.Value;       // La valeur trouve dans la bonne KEY de la map
 
 			// Update les valeurs dependant de la KEY dans StatsToApply
 			switch (Stat)
@@ -260,7 +269,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 				MaxHealth += Value;
 				CurrentHealth += Value;
 
-				// S'assure que la vie ne d�passe pas le max
+				// S'assure que la vie ne depasse pas le max
 				if (CurrentHealth > MaxHealth)
 				{
 					CurrentHealth = MaxHealth;
@@ -278,6 +287,8 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		}
 	}
 
-	// Relance la v�rification d'EXP 
+	bIsChoosingUpgrade = false;
+
+	// Relance la verification d'EXP 
 	AddEXP(0.0f);
 }
