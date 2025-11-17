@@ -67,7 +67,7 @@ protected:
 
 	/** Le nombre d'ennemis à pré-spawner pour CHAQUE type. */
 	UPROPERTY(EditInstanceOnly, Category = "Config|Pool")
-	int32 InitialPoolSizePerArchetype = 10;
+	int32 InitialPoolSizePerArchetype = 300;
 
 	/** La position cachée où les ennemis sont spawnés et attendent. */
 	UPROPERTY(EditInstanceOnly, Category = "Config|Pool")
@@ -83,7 +83,7 @@ protected:
 
 	/** L'intervalle (en secondes) entre chaque téléportation. */
 	UPROPERTY(EditInstanceOnly, Category = "Config|Teleport")
-	float TeleportInterval = 10.0f;
+	float TeleportInterval = 5.0f;
 
 private:
 	/** La fonction qui s'exécute toutes les 10 secondes */

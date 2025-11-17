@@ -13,19 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2940c32b-297f-4885-84b9-809572626c19" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/BP_EnemyPoolManager.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/EnemyPoolManager.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/EnemyPoolManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.ProjetProgFinal/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/MAPTEST.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MAPTEST.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/MainContent/BP_ExpTest.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/BP_ExpTest.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_BigEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_BigEnemy.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_MediumEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_MediumEnemy.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_SmallEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_SmallEnemy.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinal.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinal.Build.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.ProjetProgFinal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ProjetProgFinal/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/EnemyPoolManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/EnemyPoolManager.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -176,7 +165,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1763236605975</updated>
-      <workItem from="1763236607834" duration="5325000" />
+      <workItem from="1763236607834" duration="8444000" />
     </task>
     <servers />
   </component>
