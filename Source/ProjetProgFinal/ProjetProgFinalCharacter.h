@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include <AttackBox.h>
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include  "PlayerDataAsset.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -50,6 +54,18 @@ class PROJETPROGFINAL_API AProjetProgFinalCharacter : public ACharacter
 
 public:
 	AProjetProgFinalCharacter();
+
+	// Setup the AttackBox
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category="AttackBox")
+	TSubclassOf<AAttackBox> AttackBoxClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AttackBox")
+	UPlayerDataAsset* AttackBoxData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	UNiagaraSystem* SlashVFX;
+
+	FTimerHandle AttackLoopHandle;
 	
 
 protected:
@@ -62,6 +78,9 @@ protected:
 			
 
 protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	virtual void NotifyControllerChanged() override;
 
@@ -91,7 +110,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float BaseDamage;
 
-	// --- SYST�ME D'EXP ---
+
+	// --- SYSTEME D'EXP ---
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	float CurrentEXP;
@@ -102,7 +122,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
-	// --- SYST�ME D'UPGRADE ---
+	bool bIsChoosingUpgrade;
+
+	// --- SYSTEME D'UPGRADE ---
 
 	// La liste des upgrades que le character � d�j�
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")
@@ -133,6 +155,11 @@ protected:
 	TObjectPtr<USceneComponent> SpawnPoint_Large;
 
 public:
+	// --- STATS DU CHARCACTER POUR L'ATTAQUE ---
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UPlayerDataAsset> PlayerInfo;
+
+
 	// --- FONCTIONS PUBLIQUES ---
 
 	// Ajout d'EXP
@@ -148,5 +175,9 @@ public:
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 
 	virtual void GetEnemySpawnTransforms(TArray<FTransform>& OutTransforms) const;
+	//Fonction d'attaque du player
+	void Attack();
+	void StartAttacking();
+
 };
 
