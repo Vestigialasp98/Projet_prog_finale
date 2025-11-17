@@ -121,6 +121,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
+	bool bIsChoosingUpgrade;
+
 	// --- SYSTEME D'UPGRADE ---
 
 	// La liste des upgrades que le character � d�j�
