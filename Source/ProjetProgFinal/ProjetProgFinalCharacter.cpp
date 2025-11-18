@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All RightsC reserved.
 
 #include "ProjetProgFinalCharacter.h"
+#include <AttackBox.h>
+#include  "PlayerDataAsset.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,6 +15,9 @@
 #include "InputActionValue.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
+DECLARE_LOG_CATEGORY_EXTERN(LogPlayerAttack, Log, All);
+DEFINE_LOG_CATEGORY(LogPlayerAttack);
+
 
 //////////////////////////////////////////////////////////////////////////
 // AProjetProgFinalCharacter
@@ -83,7 +88,16 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+void AProjetProgFinalCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	UE_LOG(LogPlayerAttack, Warning, TEXT("BeginPlay -> StartAttacking()"));
+	StartAttacking();
+}
+
 // Input
+
 
 void AProjetProgFinalCharacter::NotifyControllerChanged()
 {
@@ -292,3 +306,80 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 	// Relance la verification d'EXP 
 	AddEXP(0.0f);
 }
+
+void AProjetProgFinalCharacter::StartAttacking()
+{
+	UE_LOG(LogPlayerAttack, Warning, TEXT("StartAttacking -> First Attack() call"));
+	Attack();
+}
+
+void AProjetProgFinalCharacter::Attack()
+{
+	UE_LOG(LogPlayerAttack, Warning, TEXT("Attack() call"));
+
+	if (!AttackBoxClass)
+	{
+		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxClass is NULL !!!"));
+	}
+
+	if (!AttackBoxData)
+	{
+		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxData is NULL !!!"));
+	}
+
+	if (!AttackBoxClass || !AttackBoxData)
+	{
+		UE_LOG(LogPlayerAttack, Error, TEXT("Attack() STOPPED because something is NULL"));
+		return;
+	}
+
+	UE_LOG(LogPlayerAttack, Warning, TEXT("Both AttackBoxClass & AttackBoxData are valid."));
+
+	if (!AttackBoxClass || !AttackBoxData) return;
+
+	//Spawn devant le joueur
+	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 150.f;
+	FRotator SpawnRotation = GetActorRotation();
+	
+	FRotator SpawnRotationVFX = GetActorRotation();
+	SpawnRotationVFX.Yaw += 180.f;
+
+	AAttackBox* HitBox = GetWorld()->SpawnActor<AAttackBox>
+		(
+			AttackBoxClass,
+			SpawnLocation,
+			SpawnRotation
+		);
+
+	// --- Spawn du VXF Slash ---
+
+	if (SlashVFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			SlashVFX,
+			SpawnLocation,
+			SpawnRotationVFX,
+			AttackBoxData->HitboxScale-0.4f
+		);
+	}
+	else
+	{
+		 UE_LOG(LogPlayerAttack, Warning, TEXT("SlashVFX not set!"));
+	}
+
+	if (HitBox)
+	{
+		HitBox->SetupHitbox(AttackBoxData->HitboxScale, AttackBoxData->HitboxDuration);
+	}
+
+	// Replanifie la prochaine attaque
+	GetWorldTimerManager().SetTimer(
+		AttackLoopHandle,
+		this,
+		&AProjetProgFinalCharacter::Attack,
+		AttackBoxData->Cooldown,
+		false
+	);
+}
+
