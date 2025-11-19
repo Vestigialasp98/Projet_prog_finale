@@ -79,7 +79,6 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	MaxHealth = 120;
 	CurrentHealth = 120;
 	MovementSpeed = 500.f;
-	BaseDamage = 10.f;
 
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
@@ -92,13 +91,15 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 void AProjetProgFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogPlayerAttack, Warning, TEXT("BeginPlay -> StartAttacking()"));
-	StartAttacking();
+
+	if (StartingWeaponClass && StartingWeaponData)
+	{
+		// Crée l'arme si elle existe
+		AddWeapon(StartingWeaponClass, StartingWeaponData);
+	}
 }
 
 // Input
-
-
 void AProjetProgFinalCharacter::NotifyControllerChanged()
 {
 	Super::NotifyControllerChanged();
@@ -125,13 +126,8 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
 
-		// --- MODIFICATION : On désactive l'input de la souris pour la caméra ---
 		// Looking
 		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
@@ -265,6 +261,32 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
 	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met a jour la map
 
+	// Trouver l'arme cible
+	AWeaponBase* TargetWeapon = nullptr;
+	if (ChosenUpgrade->WeaponToUpgrade)
+	{
+		for (AWeaponBase* Weapon : ActiveWeapons)
+		{
+			// On compare les pointeurs de DataAsset pour identifier l'arme
+			if (Weapon->GetSourceDataAsset() == ChosenUpgrade->WeaponToUpgrade)
+			{
+				TargetWeapon = Weapon;
+				break; // Trouvé !
+			}
+		}
+	}
+
+	// Si c'est une nouvelle arme
+	if (NewUpgradeLevel == 1 && TargetWeapon == nullptr && ChosenUpgrade->WeaponClassToSpawn)
+	{
+		AddWeapon(ChosenUpgrade->WeaponClassToSpawn, ChosenUpgrade->WeaponToUpgrade);
+
+		// On arrête ici pour le niveau 1 (ou on continue si on veut appliquer des stats bonus tout de suite)
+		bIsChoosingUpgrade = false;
+		AddEXP(0.0f);
+		return;
+	}
+
 	// Appliquer les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
@@ -280,22 +302,35 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 			switch (Stat)
 			{
 			case EPlayerStatType::Health:
-				MaxHealth += Value;
-				CurrentHealth += Value;
-
-				// S'assure que la vie ne depasse pas le max
-				if (CurrentHealth > MaxHealth)
-				{
-					CurrentHealth = MaxHealth;
-				}
+				MaxHealth += (int32)Value;
+				CurrentHealth += (int32)Value;
+				if (CurrentHealth > MaxHealth) CurrentHealth = MaxHealth; // S'assure que la vie ne depasse pas le max
 				break;
 
 			case EPlayerStatType::Speed:
 				GetCharacterMovement()->MaxWalkSpeed *= Value;
 				break;
 
-			case EPlayerStatType::Damage:
-				BaseDamage *= Value;
+			case EPlayerStatType::WeaponDamage:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentDamage *= Value;
+				}
+				break;
+
+			case EPlayerStatType::WeaponCooldown:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentCooldown *= Value;
+					// Le timer se mettra à jour au prochain cycle d'attaque
+				}
+				break;
+
+			case EPlayerStatType::WeaponArea:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentHitboxScale *= Value;
+				}
 				break;
 			}
 		}
@@ -307,79 +342,21 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 	AddEXP(0.0f);
 }
 
-void AProjetProgFinalCharacter::StartAttacking()
+void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, UPlayerDataAsset* InitData)
 {
-	UE_LOG(LogPlayerAttack, Warning, TEXT("StartAttacking -> First Attack() call"));
-	Attack();
-}
+	if (!WeaponClass || !InitData) return;
 
-void AProjetProgFinalCharacter::Attack()
-{
-	UE_LOG(LogPlayerAttack, Warning, TEXT("Attack() call"));
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
 
-	if (!AttackBoxClass)
+	// On spawn l'arme (invisible, c'est juste un objet logique)
+	AWeaponBase* NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+
+	if (NewWeapon)
 	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxClass is NULL !!!"));
+		NewWeapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+		NewWeapon->InitWeapon(InitData); // Ça lance le timer tout seul
+		ActiveWeapons.Add(NewWeapon);
 	}
-
-	if (!AttackBoxData)
-	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxData is NULL !!!"));
-	}
-
-	if (!AttackBoxClass || !AttackBoxData)
-	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("Attack() STOPPED because something is NULL"));
-		return;
-	}
-
-	UE_LOG(LogPlayerAttack, Warning, TEXT("Both AttackBoxClass & AttackBoxData are valid."));
-
-	if (!AttackBoxClass || !AttackBoxData) return;
-
-	//Spawn devant le joueur
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 150.f;
-	FRotator SpawnRotation = GetActorRotation();
-	
-	FRotator SpawnRotationVFX = GetActorRotation();
-	SpawnRotationVFX.Yaw += 180.f;
-
-	AAttackBox* HitBox = GetWorld()->SpawnActor<AAttackBox>
-		(
-			AttackBoxClass,
-			SpawnLocation,
-			SpawnRotation
-		);
-
-	// --- Spawn du VXF Slash ---
-
-	if (SlashVFX)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			SlashVFX,
-			SpawnLocation,
-			SpawnRotationVFX,
-			AttackBoxData->HitboxScale-0.4f
-		);
-	}
-	else
-	{
-		 UE_LOG(LogPlayerAttack, Warning, TEXT("SlashVFX not set!"));
-	}
-
-	if (HitBox)
-	{
-		HitBox->SetupHitbox(AttackBoxData->HitboxScale, AttackBoxData->HitboxDuration);
-	}
-
-	// Replanifie la prochaine attaque
-	GetWorldTimerManager().SetTimer(
-		AttackLoopHandle,
-		this,
-		&AProjetProgFinalCharacter::Attack,
-		AttackBoxData->Cooldown,
-		false
-	);
 }
 

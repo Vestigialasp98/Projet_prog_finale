@@ -5,7 +5,8 @@
 #include <AttackBox.h>
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
-#include  "PlayerDataAsset.h"
+#include "PlayerDataAsset.h"
+#include "WeaponBase.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -53,20 +54,7 @@ class AProjetProgFinalCharacter : public ACharacter
 
 public:
 	AProjetProgFinalCharacter();
-
-	// Setup the AttackBox
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category="AttackBox")
-	TSubclassOf<AAttackBox> AttackBoxClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AttackBox")
-	UPlayerDataAsset* AttackBoxData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	UNiagaraSystem* SlashVFX;
-
-	FTimerHandle AttackLoopHandle;
 	
-
 protected:
 
 	/** Called for movement input */
@@ -106,9 +94,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float MovementSpeed;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
-	float BaseDamage;
-
 
 	// --- SYSTEME D'EXP ---
 
@@ -143,10 +128,20 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
 	void UpdateEXP_UI(float NewXP, float NewMaxXP, int32 NewLvl);
 
+	// Armes actives
+	UPROPERTY(VisibleInstanceOnly, Category = "Combat")
+	TArray<AWeaponBase*> ActiveWeapons;
+
 public:
-	// --- STATS DU CHARCACTER POUR L'ATTAQUE ---
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UPlayerDataAsset> PlayerInfo;
+	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, UPlayerDataAsset* InitData);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<class AWeaponBase> StartingWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UPlayerDataAsset* StartingWeaponData;
 
 
 	// --- FONCTIONS PUBLIQUES ---
@@ -162,10 +157,6 @@ public:
 	// Applique l'upgrade choisie au character
 	UFUNCTION(BlueprintCallable, Category = "Upgrades")
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
-
-	//Fonction d'attaque du player
-	void Attack();
-	void StartAttacking();
 
 };
 

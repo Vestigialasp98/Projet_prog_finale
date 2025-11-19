@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "LevelUpData.h"
 #include "UpgradeType.h"
+#include "PlayerDataAsset.h"
 #include "DA_UpgradeBase.generated.h"
 
 /**
@@ -37,4 +38,11 @@ public:
 	// L'array des détails de chaque niveau (Niv 1 = Index 0 ; Niv 5 = Index 4)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Upgrade Data")
 	TArray<FLevelUpData> LevelDetails;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Upgrade Target")
+	UPlayerDataAsset* WeaponToUpgrade;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Upgrade Target")
+	TSubclassOf<class AWeaponBase> WeaponClassToSpawn;
 };
