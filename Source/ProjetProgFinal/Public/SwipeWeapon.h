@@ -26,4 +26,14 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UNiagaraSystem* SlashVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* AttackSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float AutoAimRadius = 400.0f;
+
+private:
+
+	AActor* FindClosestEnemy(const FVector& Origin);
 };

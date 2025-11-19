@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DamagePopup.h"
 #include "GameFramework/Actor.h"
 #include "EnemyTest.generated.h"
 
@@ -28,6 +29,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stats")
 	float CurrentHealth;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<class ADamagePopup> DamagePopupClass;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };
