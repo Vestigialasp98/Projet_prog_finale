@@ -215,9 +215,41 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	{
 		if (!Upgrade) continue;
 
+		// Est-ce que je possede deja l'arme?
+		bool bHasRequirement = true;
+
+		if (Upgrade->WeaponToUpgrade)
+		{
+			bool bPlayerHasWeapon = false;
+			// DEBUG [1]
+			FString WeaponName = Upgrade->WeaponToUpgrade->GetName();
+			// Verifie si on possede deja l'arme
+			for (AWeaponBase* W : ActiveWeapons)
+			{
+				// DEBUG 2 : On vérifie ce qu'on a
+				if (W && W->GetSourceDataAsset()->GetName() == WeaponName)
+				{
+					bPlayerHasWeapon = true;
+					break;
+				}
+			}
+			// Si on a deja l'arme
+			if (!bPlayerHasWeapon)
+			{
+				bool bIsUnlockCard = (Upgrade->WeaponClassToSpawn != nullptr);
+
+				if (bIsUnlockCard == false)
+				{
+					// C'est une stat, et je n'ai pas l'arme -> CACHER
+					bHasRequirement = false;
+				}
+			}
+		}
+
+		if (!bHasRequirement) continue;
+
 		// Check dans les upgrades deja prises
 		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
-
 		// S'il est pas deja trouve ou pas niveau max
 		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
 		{
@@ -229,26 +261,44 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// --- MELANGE ALEATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
-	// Copie de nos options valides pour pouvoir les modifie
-	TArray<UDA_UpgradeBase*> TempOptions = ValidOptions;
-
-	// Pour ne pas avoir plus d'options qu'il y en a
-	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
-
-	// Pige le nombre d'options desire
-	for (int32 i = 0; i < NumToPick; ++i)
+	for (int32 i = 0; i < NumOptions; ++i)
 	{
-		// On pige un index aleatoire
-		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
+		if (ValidOptions.Num() == 0) break;
 
-		// On ajoute l'option a l'array final
-		FinalOptions.Add(TempOptions[RandIndex]);
+		// Calcule la somme totale des poids des options restantes
+		float TotalWeight = 0.0f;
+		for (UDA_UpgradeBase* Option : ValidOptions)
+		{
+			TotalWeight += Option->ProbabilityWeight;
+		}
 
-		// On retire l'option de l'array temporaire pour ne pas la reprendre
-		TempOptions.RemoveAt(RandIndex);
+		// Tire un nombre aleatoire dans cette somme
+		float RandomValue = FMath::FRandRange(0.0f, TotalWeight);
+
+		// Trouver qui gagne
+		float CurrentSum = 0.0f;
+		UDA_UpgradeBase* SelectedUpgrade = nullptr;
+		int32 SelectedIndex = -1;
+
+		for (int32 j = 0; j < ValidOptions.Num(); ++j)
+		{
+			CurrentSum += ValidOptions[j]->ProbabilityWeight;
+			if (RandomValue <= CurrentSum)
+			{
+				SelectedUpgrade = ValidOptions[j];
+				SelectedIndex = j;
+				break;
+			}
+		}
+
+		// Ajoute et retire du pool
+		if (SelectedUpgrade)
+		{
+			FinalOptions.Add(SelectedUpgrade);
+			ValidOptions.RemoveAt(SelectedIndex); // On ne peut pas la repiocher
+		}
 	}
 
-	// On le retourne
 	return FinalOptions;
 }
 

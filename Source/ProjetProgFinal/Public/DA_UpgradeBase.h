@@ -45,4 +45,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Upgrade Target")
 	TSubclassOf<class AWeaponBase> WeaponClassToSpawn;
+
+	// Probabilité de spawn (10 = Commun ; 1 = Rare)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rarity")
+	float ProbabilityWeight = 10.0f;
 };

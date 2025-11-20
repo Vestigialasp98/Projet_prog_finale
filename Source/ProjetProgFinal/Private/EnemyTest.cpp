@@ -2,6 +2,7 @@
 
 
 #include "EnemyTest.h"
+#include "SurvivalGameState.h"
 
 // Sets default values
 AEnemyTest::AEnemyTest()
@@ -58,6 +59,13 @@ float AEnemyTest::TakeDamage(float DamageAmount, struct FDamageEvent const& Dama
 
 	if (CurrentHealth <= 0.0f)
 	{
+        ASurvivalGameState* GS = GetWorld()->GetGameState<ASurvivalGameState>();
+
+        if (GS)
+        {
+            GS->IncrementKillCount();
+        }
+
 		Destroy();
 	}
 
