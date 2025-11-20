@@ -53,8 +53,30 @@ void AProjectile::SetupProjectile(float Damage, float Speed, float Range)
 
 	// Calculer la durée de vie (Range / Vitesse)
 	// Range 1000 / Vitesse 500 = 2 secondes de vie
-	float LifeTime = (Speed > 0) ? (Range / Speed) : 2.0f;
-	SetLifeSpan(LifeTime);
+	float TravelTime = (Speed > 0) ? (Range / Speed) : 2.0f;
+	GetWorldTimerManager().SetTimer(FadeTimerHandle, this, &AProjectile::StartFadeOut, TravelTime, false);
+}
+
+void AProjectile::StartFadeOut()
+{
+	// Coupe les collisions
+	if (CollisionComp)
+	{
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	// Stop le mouvement
+	if (ProjectileMovement)
+	{
+		ProjectileMovement->StopMovementImmediately();
+		ProjectileMovement->ProjectileGravityScale = 0.0f;
+	}
+	// Desactive le niagara system
+	if (NiagaraComp)
+	{
+		NiagaraComp->Deactivate();
+	}
+
+	SetLifeSpan(1.0f);
 }
 
 void AProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

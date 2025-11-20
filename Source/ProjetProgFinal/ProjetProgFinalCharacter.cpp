@@ -2,7 +2,7 @@
 
 #include "ProjetProgFinalCharacter.h"
 #include <AttackBox.h>
-#include  "PlayerDataAsset.h"
+#include "PlayerDataAsset.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -75,10 +75,14 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	// --- Magnet range for exp pickup ---
+
 	// --- Valeurs de base du character ---
-	MaxHealth = 120;
+	MaxHealth = 100;
 	CurrentHealth = 120;
 	MovementSpeed = 500.f;
+	HealthRegenAmount = 0.0f;
+	GlobalDamageMultiplier = 1.0f;
 
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
@@ -97,6 +101,8 @@ void AProjetProgFinalCharacter::BeginPlay()
 		// Crée l'arme si elle existe
 		AddWeapon(StartingWeaponClass, StartingWeaponData);
 	}
+
+	GetWorldTimerManager().SetTimer(RegenTimerHandle, this, &AProjetProgFinalCharacter::TriggerHealthRegen, 1.0f, true); // Tout les 1 secondes
 }
 
 // Input
@@ -166,6 +172,21 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AProjetProgFinalCharacter::TriggerHealthRegen()
+{
+	if (HealthRegenAmount > 0 && CurrentHealth < MaxHealth)
+	{
+		CurrentHealth += HealthRegenAmount;
+
+		if (CurrentHealth > MaxHealth)
+		{
+			CurrentHealth = MaxHealth;
+		}
+
+		UpdateHealthUI();
 	}
 }
 
@@ -361,6 +382,10 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 				GetCharacterMovement()->MaxWalkSpeed *= Value;
 				break;
 
+			case EPlayerStatType::HealthRegen:
+				HealthRegenAmount += Value;
+				break;
+
 			case EPlayerStatType::WeaponDamage:
 				if (TargetWeapon)
 				{
@@ -382,6 +407,19 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 					TargetWeapon->CurrentHitboxScale *= Value;
 				}
 				break;
+
+			case EPlayerStatType::GlobalDamage:
+				GlobalDamageMultiplier *= Value;
+				
+				for (AWeaponBase* Weapon : ActiveWeapons)
+				{
+					if (Weapon)
+					{
+						Weapon->CurrentDamage *= Value;
+					}
+				}
+				break;
+
 			}
 		}
 	}
@@ -406,6 +444,7 @@ void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, 
 	{
 		NewWeapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 		NewWeapon->InitWeapon(InitData); // Ça lance le timer tout seul
+		NewWeapon->CurrentDamage *= GlobalDamageMultiplier;
 		ActiveWeapons.Add(NewWeapon);
 	}
 }

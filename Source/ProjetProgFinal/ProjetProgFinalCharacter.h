@@ -94,6 +94,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float MovementSpeed;
 
+	// Health Regen
+	float HealthRegenAmount;
+	FTimerHandle RegenTimerHandle;
+	void TriggerHealthRegen();
 
 	// --- SYSTEME D'EXP ---
 
@@ -128,9 +132,15 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
 	void UpdateEXP_UI(float NewXP, float NewMaxXP, int32 NewLvl);
 
+	// Update la health bar
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void UpdateHealthUI();
+
 	// Armes actives
 	UPROPERTY(VisibleInstanceOnly, Category = "Combat")
 	TArray<AWeaponBase*> ActiveWeapons;
+
+	float GlobalDamageMultiplier;
 
 public:
 	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
