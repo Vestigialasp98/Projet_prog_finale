@@ -5,12 +5,14 @@
 #include <AttackBox.h>
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
-#include  "PlayerDataAsset.h"
+#include "PlayerDataAsset.h"
+#include "WeaponBase.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "PlayerStatType.h" // Enum des types de stats
 #include "DA_UpgradeBase.h" // DataAsset de base pour les upgrades
+#include "Components/SphereComponent.h"
 #include "ProjetProgFinalCharacter.generated.h"
 
 class USpringArmComponent;
@@ -23,7 +25,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AProjetProgFinalCharacter : public ACharacter
+class PROJETPROGFINAL_API AProjetProgFinalCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -53,21 +55,9 @@ class AProjetProgFinalCharacter : public ACharacter
 
 public:
 	AProjetProgFinalCharacter();
-
-	// Setup the AttackBox
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category="AttackBox")
-	TSubclassOf<AAttackBox> AttackBoxClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AttackBox")
-	UPlayerDataAsset* AttackBoxData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	UNiagaraSystem* SlashVFX;
-
-	FTimerHandle AttackLoopHandle;
 	
-
 protected:
+	virtual void BeginPlay();
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -77,9 +67,6 @@ protected:
 			
 
 protected:
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 	virtual void NotifyControllerChanged() override;
 
@@ -106,11 +93,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
 	float MovementSpeed;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
-	float BaseDamage;
-
+	// Health Regen
+	float HealthRegenAmount;
+	FTimerHandle RegenTimerHandle;
+	void TriggerHealthRegen();
 
 	// --- SYSTEME D'EXP ---
+
+	bool bIsChoosingUpgrade;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	float CurrentEXP;
@@ -121,11 +111,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
-	bool bIsChoosingUpgrade;
+	// --- SYSTÈME D'UPGRADE ---
 
-	// --- SYSTEME D'UPGRADE ---
-
-	// La liste des upgrades que le character � d�j�
+	// La liste des upgrades que le character à déjà
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")
 	TMap<UDA_UpgradeBase*, int32> OwnedUpgrades;
 
@@ -143,12 +131,41 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
 	void UpdateEXP_UI(float NewXP, float NewMaxXP, int32 NewLvl);
 
+	// Update la health bar
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void UpdateHealthUI();
+
+	// Armes actives
+	UPROPERTY(VisibleInstanceOnly, Category = "Combat")
+	TArray<AWeaponBase*> ActiveWeapons;
+
+	float GlobalDamageMultiplier;
+
+	// --- SYSTEME D'INVICIBILITE APRES HIT ---
+	bool bIsInvincible = false;
+
+	// Le timer pour arrêter l'invincibilité
+	FTimerHandle InvincibilityTimerHandle;
+
+	// Fonction appelée après 2 secondes
+	void EndInvincibility();
+
+	// Événement pour le Blueprint (pour faire clignoter le perso rouge/transparent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Visuals")
+	void OnInvincibilityChanged(bool bIsInvincibleNow);
+
 public:
-	// --- STATS DU CHARCACTER POUR L'ATTAQUE ---
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UPlayerDataAsset> PlayerInfo;
+	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, UPlayerDataAsset* InitData);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<class AWeaponBase> StartingWeaponClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UPlayerDataAsset* StartingWeaponData;
+
+public:
 	// --- FONCTIONS PUBLIQUES ---
 
 	// Ajout d'EXP
@@ -163,9 +180,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Upgrades")
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 
-	//Fonction d'attaque du player
-	void Attack();
-	void StartAttacking();
-
+	// --- Recoit des degats ---
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };
-

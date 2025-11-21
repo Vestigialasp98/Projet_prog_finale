@@ -8,8 +8,15 @@
 UENUM(BlueprintType)
 enum class EPlayerStatType : uint8
 {
-	Health		UMETA(DisplayName = "Health"),
-	Speed		UMETA(DisplayName = "Speed"),
-	Damage		UMETA(DisplayName = "Damage"),
-	Cooldown	UMETA(DisplayName = "Cooldown")
+	// --- STATS DU PERSONNAGE ---
+	Health		    UMETA(DisplayName = "Max Health"),
+	Speed			UMETA(DisplayName = "Movement Speed"),
+	HealthRegen		UMETA(DisplayName = "Health Regeneration"),
+	PickUpRange		UMETA(DisplayName = "Pick Up Range"),
+
+	// --- STATS DE L'ARME ---
+	WeaponDamage	UMETA(DisplayName = "Weapon Damage"),
+	WeaponCooldown	UMETA(DisplayName = "Weapon Cooldown Speed"),
+	WeaponArea      UMETA(DisplayName = "Weapon Area/Size"),
+	GlobalDamage	UMETA(DisplayName = "Global Damage Multiplier")
 };

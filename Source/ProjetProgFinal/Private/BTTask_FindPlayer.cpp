@@ -28,7 +28,15 @@ EBTNodeResult::Type UBTTask_FindPlayer::ExecuteTask(UBehaviorTreeComponent& Owne
 		return EBTNodeResult::Failed;
 	}
 
-	// --- 2. Trouver le joueur ---
+	// --- OPTIMISATION : Vérifier si le joueur est déjà en cache ---
+	UObject* CachedPlayer = BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName);
+	if (IsValid(CachedPlayer))
+	{
+		// Le joueur est déjà en cache et valide, pas besoin de rechercher
+		return EBTNodeResult::Succeeded;
+	}
+
+	// --- 2. Trouver le joueur (seulement si pas en cache) ---
 	// On utilise GetPlayerPawn pour être générique (pourrait être une voiture, etc.)
 	// On utilise GetWorld() depuis le contrôleur
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(AIController->GetWorld(), 0);

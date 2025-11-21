@@ -2,7 +2,7 @@
 
 #include "ProjetProgFinalCharacter.h"
 #include <AttackBox.h>
-#include  "PlayerDataAsset.h"
+#include "PlayerDataAsset.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,11 +13,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h" // Assurez-vous que cet include est là
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
-DECLARE_LOG_CATEGORY_EXTERN(LogPlayerAttack, Log, All);
-DEFINE_LOG_CATEGORY(LogPlayerAttack);
-
 
 //////////////////////////////////////////////////////////////////////////
 // AProjetProgFinalCharacter
@@ -26,14 +25,14 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+	   
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...  
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -75,16 +74,19 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	// --- Magnet range for exp pickup ---
+
 	// --- Valeurs de base du character ---
-	MaxHealth = 120;
-	CurrentHealth = 120;
+	MaxHealth = 100;
+	CurrentHealth = 100;
 	MovementSpeed = 500.f;
-	BaseDamage = 10.f;
+	HealthRegenAmount = 0.0f;
+	GlobalDamageMultiplier = 1.0f;
+	bIsInvincible = false;
 
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
-	CurrentPlayerLevel = 1;
-	bIsChoosingUpgrade = false;
+	CurrentPlayerLevel = 1;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,13 +94,17 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 void AProjetProgFinalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogPlayerAttack, Warning, TEXT("BeginPlay -> StartAttacking()"));
-	StartAttacking();
+
+	if (StartingWeaponClass && StartingWeaponData)
+	{
+		// Crée l'arme si elle existe
+		AddWeapon(StartingWeaponClass, StartingWeaponData);
+	}
+
+	GetWorldTimerManager().SetTimer(RegenTimerHandle, this, &AProjetProgFinalCharacter::TriggerHealthRegen, 1.0f, true); // Tout les 1 secondes
 }
 
 // Input
-
-
 void AProjetProgFinalCharacter::NotifyControllerChanged()
 {
 	Super::NotifyControllerChanged();
@@ -125,13 +131,8 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
 
-		// --- MODIFICATION : On désactive l'input de la souris pour la caméra ---
 		// Looking
 		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
@@ -173,8 +174,24 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void AProjetProgFinalCharacter::TriggerHealthRegen()
+{
+	if (HealthRegenAmount > 0 && CurrentHealth < MaxHealth)
+	{
+		CurrentHealth += HealthRegenAmount;
+
+		if (CurrentHealth > MaxHealth)
+		{
+			CurrentHealth = MaxHealth;
+		}
+
+		UpdateHealthUI();
+	}
+}
+
 void AProjetProgFinalCharacter::AddEXP(float Amount)
 {
+	// Si on choisit deja l'upgrade, prend l'exp mais ne level up pas
 	if (bIsChoosingUpgrade)
 	{
 		CurrentEXP += Amount;
@@ -184,25 +201,19 @@ void AProjetProgFinalCharacter::AddEXP(float Amount)
 	CurrentEXP += Amount;
 	bool bDidLevelUp = false;
 
+	// Level up
 	while (CurrentEXP >= EXPToNextLevel)
 	{
 		bDidLevelUp = true;
 		bIsChoosingUpgrade = true;
 
-		float OldEXPToNextLevel = EXPToNextLevel;
-
-		// Gerer la logique de Level Up
-		CurrentPlayerLevel++;
-		EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP avoir pour level up
-
-		UpdateEXP_UI(0.0f, EXPToNextLevel, CurrentPlayerLevel);
+		UpdateEXP_UI(0.0f, EXPToNextLevel * 1.2f, CurrentPlayerLevel + 1);
 		ShowLevelUpScreen();
-
-		CurrentEXP -= OldEXPToNextLevel;
 
 		break;
 	}
 
+	// Augmente l'EXP
 	if (!bDidLevelUp)
 	{
 		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
@@ -214,14 +225,46 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Variable locale
 	TArray<UDA_UpgradeBase*> ValidOptions;
 
-	// Verifie chacun des upgrades
+	// Vérifie chacun des upgrades
 	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
 	{
 		if (!Upgrade) continue;
 
+		// Est-ce que je possede deja l'arme?
+		bool bHasRequirement = true;
+
+		if (Upgrade->WeaponToUpgrade)
+		{
+			bool bPlayerHasWeapon = false;
+			// DEBUG [1]
+			FString WeaponName = Upgrade->WeaponToUpgrade->GetName();
+			// Verifie si on possede deja l'arme
+			for (AWeaponBase* W : ActiveWeapons)
+			{
+				// DEBUG 2 : On vérifie ce qu'on a
+				if (W && W->GetSourceDataAsset()->GetName() == WeaponName)
+				{
+					bPlayerHasWeapon = true;
+					break;
+				}
+			}
+			// Si on a deja l'arme
+			if (!bPlayerHasWeapon)
+			{
+				bool bIsUnlockCard = (Upgrade->WeaponClassToSpawn != nullptr);
+
+				if (bIsUnlockCard == false)
+				{
+					// C'est une stat, et je n'ai pas l'arme -> CACHER
+					bHasRequirement = false;
+				}
+			}
+		}
+
+		if (!bHasRequirement) continue;
+
 		// Check dans les upgrades deja prises
 		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
-
 		// S'il est pas deja trouve ou pas niveau max
 		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
 		{
@@ -230,29 +273,47 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 		}
 	}
 
-	// --- MELANGE ALEATOIRE ---
+	// --- MÉLANGE ALÉATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
-	// Copie de nos options valides pour pouvoir les modifie
-	TArray<UDA_UpgradeBase*> TempOptions = ValidOptions;
-
-	// Pour ne pas avoir plus d'options qu'il y en a
-	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
-
-	// Pige le nombre d'options desire
-	for (int32 i = 0; i < NumToPick; ++i)
+	for (int32 i = 0; i < NumOptions; ++i)
 	{
-		// On pige un index aleatoire
-		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
+		if (ValidOptions.Num() == 0) break;
 
-		// On ajoute l'option a l'array final
-		FinalOptions.Add(TempOptions[RandIndex]);
+		// Calcule la somme totale des poids des options restantes
+		float TotalWeight = 0.0f;
+		for (UDA_UpgradeBase* Option : ValidOptions)
+		{
+			TotalWeight += Option->ProbabilityWeight;
+		}
 
-		// On retire l'option de l'array temporaire pour ne pas la reprendre
-		TempOptions.RemoveAt(RandIndex);
+		// Tire un nombre aleatoire dans cette somme
+		float RandomValue = FMath::FRandRange(0.0f, TotalWeight);
+
+		// Trouver qui gagne
+		float CurrentSum = 0.0f;
+		UDA_UpgradeBase* SelectedUpgrade = nullptr;
+		int32 SelectedIndex = -1;
+
+		for (int32 j = 0; j < ValidOptions.Num(); ++j)
+		{
+			CurrentSum += ValidOptions[j]->ProbabilityWeight;
+			if (RandomValue <= CurrentSum)
+			{
+				SelectedUpgrade = ValidOptions[j];
+				SelectedIndex = j;
+				break;
+			}
+		}
+
+		// Ajoute et retire du pool
+		if (SelectedUpgrade)
+		{
+			FinalOptions.Add(SelectedUpgrade);
+			ValidOptions.RemoveAt(SelectedIndex); // On ne peut pas la repiocher
+		}
 	}
 
-	// On le retourne
 	return FinalOptions;
 }
 
@@ -260,126 +321,182 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre a jour le niveau
+	// Mettre à jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
-	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met a jour la map
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
+
+	// Gérer la logique de Level Up
+	CurrentPlayerLevel++;
+	CurrentEXP -= EXPToNextLevel;
+	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP à avoir pour level up
+
+	// Trouver l'arme cible
+	AWeaponBase* TargetWeapon = nullptr;
+	if (ChosenUpgrade->WeaponToUpgrade)
+	{
+		for (AWeaponBase* Weapon : ActiveWeapons)
+		{
+			// On compare les pointeurs de DataAsset pour identifier l'arme
+			if (Weapon->GetSourceDataAsset() == ChosenUpgrade->WeaponToUpgrade)
+			{
+				TargetWeapon = Weapon;
+				break; // Trouvé !
+			}
+		}
+	}
+
+	// Si c'est une nouvelle arme
+	if (NewUpgradeLevel == 1 && TargetWeapon == nullptr && ChosenUpgrade->WeaponClassToSpawn)
+	{
+		AddWeapon(ChosenUpgrade->WeaponClassToSpawn, ChosenUpgrade->WeaponToUpgrade);
+
+		// On arrête ici pour le niveau 1 (ou on continue si on veut appliquer des stats bonus tout de suite)
+		bIsChoosingUpgrade = false;
+		AddEXP(0.0f);
+		return;
+	}
 
 	// Appliquer les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
 
-		// On cherche quels sont les valeurs a appliquer dans la map
+		// On cherche quels sont les valeurs à appliquer dans la map
 		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
 		{
 			EPlayerStatType Stat = StatPair.Key;
-			float Value = StatPair.Value;       // La valeur trouve dans la bonne KEY de la map
+			float Value = StatPair.Value;       // La valeur trouvé dans la bonne KEY de la map
 
 			// Update les valeurs dependant de la KEY dans StatsToApply
 			switch (Stat)
 			{
 			case EPlayerStatType::Health:
-				MaxHealth += Value;
-				CurrentHealth += Value;
-
-				// S'assure que la vie ne depasse pas le max
-				if (CurrentHealth > MaxHealth)
-				{
-					CurrentHealth = MaxHealth;
-				}
+				MaxHealth += (int32)Value;
+				CurrentHealth += (int32)Value;
+				if (CurrentHealth > MaxHealth) CurrentHealth = MaxHealth; // S'assure que la vie ne depasse pas le max
 				break;
 
 			case EPlayerStatType::Speed:
 				GetCharacterMovement()->MaxWalkSpeed *= Value;
 				break;
 
-			case EPlayerStatType::Damage:
-				BaseDamage *= Value;
+			case EPlayerStatType::HealthRegen:
+				HealthRegenAmount += Value;
 				break;
+
+			case EPlayerStatType::WeaponDamage:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentDamage *= Value;
+				}
+				break;
+
+			case EPlayerStatType::WeaponCooldown:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentCooldown *= Value;
+					// Le timer se mettra à jour au prochain cycle d'attaque
+				}
+				break;
+
+			case EPlayerStatType::WeaponArea:
+				if (TargetWeapon)
+				{
+					TargetWeapon->CurrentHitboxScale *= Value;
+				}
+				break;
+
+			case EPlayerStatType::GlobalDamage:
+				GlobalDamageMultiplier *= Value;
+				
+				for (AWeaponBase* Weapon : ActiveWeapons)
+				{
+					if (Weapon)
+					{
+						Weapon->CurrentDamage *= Value;
+					}
+				}
+				break;
+
 			}
 		}
 	}
 
 	bIsChoosingUpgrade = false;
 
-	// Relance la verification d'EXP 
+	// Relance la vérification d'EXP 
 	AddEXP(0.0f);
+	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }
 
-void AProjetProgFinalCharacter::StartAttacking()
+void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, UPlayerDataAsset* InitData)
 {
-	UE_LOG(LogPlayerAttack, Warning, TEXT("StartAttacking -> First Attack() call"));
-	Attack();
+	if (!WeaponClass || !InitData) return;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	// On spawn l'arme (invisible, c'est juste un objet logique)
+	AWeaponBase* NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+
+	if (NewWeapon)
+	{
+		NewWeapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+		NewWeapon->InitWeapon(InitData); // Ça lance le timer tout seul
+		NewWeapon->CurrentDamage *= GlobalDamageMultiplier;
+		ActiveWeapons.Add(NewWeapon);
+	}
 }
 
-void AProjetProgFinalCharacter::Attack()
+float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	UE_LOG(LogPlayerAttack, Warning, TEXT("Attack() call"));
-
-	if (!AttackBoxClass)
+	// Si invincible, refuse les dégats
+	if (bIsInvincible)
 	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxClass is NULL !!!"));
+		return 0.0f;
 	}
 
-	if (!AttackBoxData)
+	// Appel au parent
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// Appliquer les dégats
+	int32 DamageInt = FMath::RoundToInt(ActualDamage);
+	CurrentHealth -= DamageInt;
+
+	// Debug pour voir si ça marche
+	UE_LOG(LogTemp, Warning, TEXT("OUCH! Pris %d degats. PV restants : %d"), DamageInt, CurrentHealth);
+
+	// Vérifie s'il est mort
+	if (CurrentHealth <= 0)
 	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("ERROR -> AttackBoxData is NULL !!!"));
-	}
-
-	if (!AttackBoxClass || !AttackBoxData)
-	{
-		UE_LOG(LogPlayerAttack, Error, TEXT("Attack() STOPPED because something is NULL"));
-		return;
-	}
-
-	UE_LOG(LogPlayerAttack, Warning, TEXT("Both AttackBoxClass & AttackBoxData are valid."));
-
-	if (!AttackBoxClass || !AttackBoxData) return;
-
-	//Spawn devant le joueur
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 150.f;
-	FRotator SpawnRotation = GetActorRotation();
-	
-	FRotator SpawnRotationVFX = GetActorRotation();
-	SpawnRotationVFX.Yaw += 180.f;
-
-	AAttackBox* HitBox = GetWorld()->SpawnActor<AAttackBox>
-		(
-			AttackBoxClass,
-			SpawnLocation,
-			SpawnRotation
-		);
-
-	// --- Spawn du VXF Slash ---
-
-	if (SlashVFX)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			SlashVFX,
-			SpawnLocation,
-			SpawnRotationVFX,
-			AttackBoxData->HitboxScale-0.4f
-		);
+		CurrentHealth = 0;
+		// GameOver()
+		
 	}
 	else
 	{
-		 UE_LOG(LogPlayerAttack, Warning, TEXT("SlashVFX not set!"));
+		// Active l'invicibilité
+		bIsInvincible = true;
+
+		// Lancer le timer de 2 secondes
+		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 2.0f, false);
+
+		// Prévenir le Blueprint
+		OnInvincibilityChanged(true);
 	}
 
-	if (HitBox)
-	{
-		HitBox->SetupHitbox(AttackBoxData->HitboxScale, AttackBoxData->HitboxDuration);
-	}
+	// Update Health UI
+	UpdateHealthUI();
 
-	// Replanifie la prochaine attaque
-	GetWorldTimerManager().SetTimer(
-		AttackLoopHandle,
-		this,
-		&AProjetProgFinalCharacter::Attack,
-		AttackBoxData->Cooldown,
-		false
-	);
+	return ActualDamage;
 }
 
+void AProjetProgFinalCharacter::EndInvincibility()
+{
+	// Le temps est écoulé, on redevient vulnérable
+	bIsInvincible = false;
+
+	// Prévenir le Blueprint (Arrêter le clignotement)
+	OnInvincibilityChanged(false);
+}
