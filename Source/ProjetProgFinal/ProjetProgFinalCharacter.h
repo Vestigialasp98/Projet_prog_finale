@@ -12,6 +12,8 @@
 #include "Logging/LogMacros.h"
 #include "PlayerStatType.h" // Enum des types de stats
 #include "DA_UpgradeBase.h" // DataAsset de base pour les upgrades
+//#include "Components/SceneComponent.h"
+#include "Components/SphereComponent.h"
 #include "ProjetProgFinalCharacter.generated.h"
 
 class USpringArmComponent;
@@ -21,10 +23,13 @@ class UInputAction;
 class UDA_UpgradeBase; // Idem pour DataAsset en class
 struct FInputActionValue;
 
+// La "forward declaration" n'est plus nécessaire
+// class USphereComponent;
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AProjetProgFinalCharacter : public ACharacter
+class PROJETPROGFINAL_API AProjetProgFinalCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -66,9 +71,6 @@ protected:
 
 protected:
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	virtual void NotifyControllerChanged() override;
 
 	// APawn interface
@@ -101,6 +103,8 @@ protected:
 
 	// --- SYSTEME D'EXP ---
 
+	bool bIsChoosingUpgrade;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	float CurrentEXP;
 
@@ -110,11 +114,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats|XP")
 	int32 CurrentPlayerLevel;
 
-	bool bIsChoosingUpgrade;
+	// --- SYSTÈME D'UPGRADE ---
 
-	// --- SYSTEME D'UPGRADE ---
-
-	// La liste des upgrades que le character � d�j�
+	// La liste des upgrades que le character à déjà
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Upgrades")
 	TMap<UDA_UpgradeBase*, int32> OwnedUpgrades;
 
@@ -154,6 +156,21 @@ public:
 	UPlayerDataAsset* StartingWeaponData;
 
 
+	// --- MODIFICATION : Remplacés par des TArrays ---
+	/** Groupe de points de spawn pour les petits ennemis (15) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TArray<TObjectPtr<USphereComponent>> SmallSpawnPoints;
+
+	/** Groupe de points de spawn pour les ennemis moyens (10) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TArray<TObjectPtr<USphereComponent>> MediumSpawnPoints;
+
+	/** Groupe de points de spawn pour les grands ennemis (5) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TArray<TObjectPtr<USphereComponent>> LargeSpawnPoints;
+	// --- FIN MODIFICATION ---
+
+public:
 	// --- FONCTIONS PUBLIQUES ---
 
 	// Ajout d'EXP
@@ -168,5 +185,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Upgrades")
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 
-};
+	// --- MODIFICATION : Fonctions mises à jour ---
+	/**
+	 * Renvoie un transform de spawn pour un pool et un index de point de spawn donnés.
+	 */
+	virtual FTransform GetSpawnTransformForPool(int32 PoolIndex, int32 SpawnPointIndex) const;
 
+	/**
+	 * Renvoie le nombre total de points de spawn pour un pool donné.
+	 */
+	virtual int32 GetSpawnPointCountForPool(int32 PoolIndex) const;
+	// --- FIN MODIFICATION ---
+};

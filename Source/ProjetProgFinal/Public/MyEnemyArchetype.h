@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "Curves/CurveFloat.h"
 #include "MyEnemyArchetype.generated.h"
 
 /**
@@ -46,6 +47,24 @@ public :
 	// Tag(s) de gameplay, icône, etc. (optionnels)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Meta")
 	FName EnemyId = NAME_None;
+
+	// --- AJOUT : Courbe de spawn dynamique ---
+	
+	/**
+	 * Courbe définissant le taux de spawn en fonction du temps de jeu.
+	 * 
+	 * Axe X = Temps de jeu écoulé (en secondes)
+	 * Axe Y = Nombre d'ennemis à spawner par seconde
+	 * 
+	 * Exemples :
+	 * - Y = 0.5 → 1 ennemi toutes les 2 secondes
+	 * - Y = 1.0 → 1 ennemi par seconde
+	 * - Y = 2.0 → 2 ennemis par seconde
+	 * 
+	 * Si null, cet ennemi ne spawnera pas automatiquement.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Spawning")
+	TObjectPtr<UCurveFloat> SpawnRateCurve;
 
 public:
 	// Permet de classer ce type d’asset dans le Primary Asset System (facultatif mais propre)
