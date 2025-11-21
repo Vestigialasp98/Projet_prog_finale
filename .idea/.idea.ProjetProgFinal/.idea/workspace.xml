@@ -14,7 +14,24 @@
   <component name="ChangeListManager">
     <list default="true" id="2940c32b-297f-4885-84b9-809572626c19" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ProjetProgFinal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ProjetProgFinal/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MAPTEST.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MAPTEST.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_BigEnnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_BigEnnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_MediumEnnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_MediumEnnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_SmallEnnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/Datas/Enemies/DA_SmallEnnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_BigEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_BigEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_MediumEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_MediumEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_SmallEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/MainContent/EnemyContent/EnemyBP/BP_SmallEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/BTTask_FindPlayer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/BTTask_FindPlayer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/EnemyPoolManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/EnemyPoolManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Private/MyEnemySpawner.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/ProjetProgFinalCharacter.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/EnemyPoolManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/EnemyPoolManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/MyEnemyArchetype.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/MyEnemyArchetype.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ProjetProgFinal/Public/MyEnemySpawner.h" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,30 +44,31 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="35WrKVZib9pqvc8T9oQHjxdIJx0" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "C/C++ Project.ProjetProgFinal.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "MergeUpgradeEnemy1",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;C/C++ Project.ProjetProgFinal.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;MergeUpgradeEnemy1&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="C/C++ Project.ProjetProgFinal">
     <configuration name="ProjetProgFinal" type="CppProject" factoryName="C++ Project">
       <configuration_1 setup="1">
@@ -154,7 +172,10 @@
       <method v="2" />
     </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile" />
+      <deployment type="dockerfile">
+        <settings />
+      </deployment>
+      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
       <method v="2" />
     </configuration>
   </component>
@@ -165,7 +186,21 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1763236605975</updated>
-      <workItem from="1763236607834" duration="8444000" />
+      <workItem from="1763236607834" duration="11495000" />
+      <workItem from="1763346929520" duration="1957000" />
+      <workItem from="1763490139591" duration="1202000" />
+      <workItem from="1763664384275" duration="8000" />
+      <workItem from="1763665058516" duration="380000" />
+      <workItem from="1763665548013" duration="426000" />
+      <workItem from="1763666622075" duration="1071000" />
+      <workItem from="1763667747700" duration="1364000" />
+      <workItem from="1763670035037" duration="853000" />
+      <workItem from="1763671060988" duration="752000" />
+      <workItem from="1763679170854" duration="1505000" />
+      <workItem from="1763683243340" duration="888000" />
+      <workItem from="1763684584899" duration="624000" />
+      <workItem from="1763685427487" duration="839000" />
+      <workItem from="1763687914151" duration="819000" />
     </task>
     <servers />
   </component>

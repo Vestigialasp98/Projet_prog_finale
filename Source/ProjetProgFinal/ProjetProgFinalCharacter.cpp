@@ -11,6 +11,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h" // Assurez-vous que cet include est là
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -21,14 +23,14 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+	   
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...  
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -80,17 +82,78 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	EXPToNextLevel = 100.f;
 	CurrentPlayerLevel = 1;
 
-	SpawnPoint_Small = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Small"));
-	SpawnPoint_Small->SetupAttachment(CameraBoom);
-	SpawnPoint_Small->SetRelativeLocation(FVector(-100.f, -500.f, 0.f));
+	// --- MODIFICATION : Création des 30 SceneComponents pour les spawn points ---
+	
+	// Créer les 15 points Small
+	for (int32 i = 0; i < 15; ++i)
+	{
+		// Crée un nom unique comme "SpawnPoint_Small_0", "SpawnPoint_Small_1", etc.
+		FName ComponentName = FName(TEXT("SpawnPoint_Small_%d"), i);
+		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
+		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
+		NewPoint->SetupAttachment(RootComponent);
+		
+		// Position initiale (ex: en cercle autour de la caméra)
+		float Angle = (float)i / 15.0f * 360.0f;
+		// Position sur le plan XY (Z=0 par rapport au joueur)
+		FVector Location = FVector(FMath::Cos(Angle) * 1500.f, FMath::Sin(Angle) * 1500.f, 0.f);
+		NewPoint->SetRelativeLocation(Location);
 
-	SpawnPoint_Medium = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Medium"));
-	SpawnPoint_Medium->SetupAttachment(CameraBoom);
-	SpawnPoint_Medium->SetRelativeLocation(FVector(-100.f, 0.f, 0.f));
+		// --- AJOUT : Configuration de la sphère ---
+		NewPoint->InitSphereRadius(30.0f); // Taille de la sphère
+		NewPoint->SetHiddenInGame(false); // On la rend visible en jeu (pour débogage)
+		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Pas de collision
+		NewPoint->ShapeColor = FColor::Green; // Couleur de la sphère (visible dans l'éditeur)
+		// --- FIN AJOUT ---
 
-	SpawnPoint_Large = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Large"));
-	SpawnPoint_Large->SetupAttachment(CameraBoom);
-	SpawnPoint_Large->SetRelativeLocation(FVector(-100.f, 500.f, 0.f));
+		SmallSpawnPoints.Add(NewPoint);
+	}
+
+	// Créer les 10 points Medium
+	for (int32 i = 0; i < 10; ++i)
+	{
+		FName ComponentName = FName(TEXT("SpawnPoint_Medium_%d"), i);
+		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
+		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
+		NewPoint->SetupAttachment(RootComponent);
+
+		float Angle = (float)i / 10.0f * 360.0f;
+		// Position sur le plan XY (Z=0 par rapport au joueur)
+		FVector Location = FVector(FMath::Cos(Angle) * 2000.f, FMath::Sin(Angle) * 2000.f, 0.f);
+		NewPoint->SetRelativeLocation(Location);
+
+		// --- AJOUT : Configuration de la sphère ---
+		NewPoint->InitSphereRadius(50.0f);
+		NewPoint->SetHiddenInGame(false);
+		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		NewPoint->ShapeColor = FColor::Yellow;
+		// --- FIN AJOUT ---
+
+		MediumSpawnPoints.Add(NewPoint);
+	}
+
+	// Créer les 5 points Large
+	for (int32 i = 0; i < 5; ++i)
+	{
+		FName ComponentName = FName(TEXT("SpawnPoint_Large_%d"), i);
+		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
+		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
+		NewPoint->SetupAttachment(RootComponent);
+		
+		float Angle = (float)i / 5.0f * 360.0f;
+		// Position sur le plan XY (Z=0 par rapport au joueur)
+		FVector Location = FVector(FMath::Cos(Angle) * 2500.f, FMath::Sin(Angle) * 2500.f, 0.f);
+		NewPoint->SetRelativeLocation(Location);
+
+		// --- AJOUT : Configuration de la sphère ---
+		NewPoint->InitSphereRadius(80.0f);
+		NewPoint->SetHiddenInGame(false);
+		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		NewPoint->ShapeColor = FColor::Red;
+		// --- FIN AJOUT ---
+
+		LargeSpawnPoints.Add(NewPoint);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,15 +259,15 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Variable locale
 	TArray<UDA_UpgradeBase*> ValidOptions;
 
-	// V�rifie chacun des upgrades
+	// Vérifie chacun des upgrades
 	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
 	{
 		if (!Upgrade) continue;
 
-		// Check dans les upgrades d�j� prises
+		// Check dans les upgrades déjà prises
 		const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(Upgrade);
 
-		// S'il est pas d�j� trouv� ou pas niveau max
+		// S'il est pas déjà trouvé ou pas niveau max
 		if (CurrentUpgradeLevel < Upgrade->MaxLevel)
 		{
 			// Ajout aux options valides
@@ -212,7 +275,7 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 		}
 	}
 
-	// --- M�LANGE AL�ATOIRE ---
+	// --- MÉLANGE ALÉATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
 	// Copie de nos options valides pour pouvoir les modifie
@@ -221,13 +284,13 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Pour ne pas avoir plus d'options qu'il y en a
 	int32 NumToPick = FMath::Min(NumOptions, TempOptions.Num());
 
-	// Pige le nombre d'options d�sir�
+	// Pige le nombre d'options désiré
 	for (int32 i = 0; i < NumToPick; ++i)
 	{
-		// On pige un index al�atoire
+		// On pige un index aléatoire
 		int32 RandIndex = FMath::RandRange(0, TempOptions.Num() - 1);
 
-		// On ajoute l'option � l'array final
+		// On ajoute l'option à l'array final
 		FinalOptions.Add(TempOptions[RandIndex]);
 
 		// On retire l'option de l'array temporaire pour ne pas la reprendre
@@ -242,26 +305,26 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre � jour le niveau
+	// Mettre à jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
-	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met � jour la map
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
 
-	// G�rer la logique de Level Up
+	// Gérer la logique de Level Up
 	CurrentPlayerLevel++;
 	CurrentEXP -= EXPToNextLevel;
-	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP � avoir pour level up
+	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP à avoir pour level up
 
 	// Appliquer les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
 
-		// On cherche quels sont les valeurs � appliquer dans la map
+		// On cherche quels sont les valeurs à appliquer dans la map
 		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
 		{
 			EPlayerStatType Stat = StatPair.Key;
-			float Value = StatPair.Value;       // La valeur trouv� dans la bonne KEY de la map
+			float Value = StatPair.Value;       // La valeur trouvé dans la bonne KEY de la map
 
 			// Update les valeurs dependant de la KEY dans StatsToApply
 			switch (Stat)
@@ -270,7 +333,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 				MaxHealth += Value;
 				CurrentHealth += Value;
 
-				// S'assure que la vie ne d�passe pas le max
+				// S'assure que la vie ne dépasse pas le max
 				if (CurrentHealth > MaxHealth)
 				{
 					CurrentHealth = MaxHealth;
@@ -288,20 +351,62 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		}
 	}
 
-	// Relance la v�rification d'EXP 
+	// Relance la vérification d'EXP 
 	AddEXP(0.0f);
 
-	// Mettre � jour le UI
+	// Mettre à jour le UI
 	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }
 
-// --- AJOUT : Implémentation de la nouvelle fonction ---
-void AProjetProgFinalCharacter::GetEnemySpawnTransforms(TArray<FTransform>& OutTransforms) const
+// --- MODIFICATION : Implémentation des nouvelles fonctions ---
+
+FTransform AProjetProgFinalCharacter::GetSpawnTransformForPool(int32 PoolIndex, int32 SpawnPointIndex) const
 {
-	OutTransforms.Empty();
-	
-	// IMPORTANT : L'ORDRE doit correspondre à l'ordre dans le PoolManager
-	if (SpawnPoint_Small) OutTransforms.Add(SpawnPoint_Small->GetComponentTransform());
-	if (SpawnPoint_Medium) OutTransforms.Add(SpawnPoint_Medium->GetComponentTransform());
-	if (SpawnPoint_Large) OutTransforms.Add(SpawnPoint_Large->GetComponentTransform());
+	// --- CHNAGEMENT DE TYPE ---
+	const TArray<TObjectPtr<USphereComponent>>* TargetArray = nullptr;
+	// --- FIN CHNAGEMENT ---
+
+	// L'ordre (0, 1, 2) est basé sur l'ordre dans le PoolManager
+	switch (PoolIndex)
+	{
+	case 0:
+		TargetArray = &SmallSpawnPoints;
+		break;
+	case 1:
+		TargetArray = &MediumSpawnPoints;
+		break;
+	case 2:
+		TargetArray = &LargeSpawnPoints;
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("GetSpawnTransformForPool: Index de pool (%d) non valide !"), PoolIndex);
+		return GetActorTransform();
+	}
+
+	// S'assurer que le tableau a des points et que l'index est valide
+	if (TargetArray && TargetArray->IsValidIndex(SpawnPointIndex) && (*TargetArray)[SpawnPointIndex])
+	{
+		// Renvoyer le transform de ce point
+		return (*TargetArray)[SpawnPointIndex]->GetComponentTransform();
+	}
+
+	// Fallback au cas où le tableau est vide ou l'index est mauvais
+	UE_LOG(LogTemp, Warning, TEXT("GetSpawnTransformForPool: Le pool (%d) n'a pas pu trouver le point de spawn (%d) !"), PoolIndex, SpawnPointIndex);
+	return GetActorTransform();
 }
+
+int32 AProjetProgFinalCharacter::GetSpawnPointCountForPool(int32 PoolIndex) const
+{
+	switch (PoolIndex)
+	{
+	case 0:
+		return SmallSpawnPoints.Num();
+	case 1:
+		return MediumSpawnPoints.Num();
+	case 2:
+		return LargeSpawnPoints.Num();
+	default:
+		return 0;
+	}
+}
+// --- FIN MODIFICATION ---

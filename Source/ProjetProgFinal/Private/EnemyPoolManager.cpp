@@ -15,8 +15,9 @@
 
 AEnemyPoolManager::AEnemyPoolManager()
 {
-	// On n'a pas besoin de Tick
-	PrimaryActorTick.bCanEverTick = false;
+	// --- MODIFICATION : On a besoin de Tick pour le système de courbes ---
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickInterval = 0.1f; // Tick toutes les 0.1s (10 Hz) pour économiser du CPU
 }
 
 void AEnemyPoolManager::BeginPlay()
@@ -37,20 +38,77 @@ void AEnemyPoolManager::BeginPlay()
 	// 1. Spawner tous les ennemis et les cacher
 	SpawnInitialPool();
 
-	// 2. Démarrer le timer de 10s pour téléporter les ennemis
-	// --- MODIFICATION : On vérifie juste EnemyPools, plus TeleportTargets ---
-	if (TeleportInterval > 0.f && EnemyPools.Num() > 0)
+	// 2. Le spawn sera géré par Tick() avec les courbes
+	// Plus besoin de timer fixe !
+}
+
+void AEnemyPoolManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!CachedPlayerCharacter) return;
+
+	// Incrémenter le temps de jeu
+	GameTimeElapsed += DeltaTime;
+
+	// Traiter chaque pool
+	for (int32 i = 0; i < EnemyPools.Num(); i++)
 	{
-		GetWorld()->GetTimerManager().SetTimer(
-			TeleportTimerHandle, 
-			this, 
-			&AEnemyPoolManager::OnTeleportTimerFired, 
-			TeleportInterval, 
-			true, // 'true' pour que le timer se répète
-			TeleportInterval // Délai initial avant le premier tir
-		);
+		FEnemyPool& Pool = EnemyPools[i];
+		UMyEnemyArchetype* Archetype = Pool.Archetype.Get();
+
+		if (!Archetype) continue;
+
+		// Vérifier si l'archetype a une courbe de spawn
+		if (!Archetype->SpawnRateCurve)
+		{
+			// Pas de courbe = pas de spawn automatique pour cet archetype
+			continue;
+		}
+
+		// Évaluer la courbe au temps actuel
+		float SpawnRate = Archetype->SpawnRateCurve->GetFloatValue(GameTimeElapsed);
+
+		// Si le taux de spawn est <= 0, ne rien faire
+		if (SpawnRate <= 0.0f) continue;
+
+		// Calculer combien d'ennemis spawner ce frame
+		float EnemiesToSpawnThisFrame = SpawnRate * DeltaTime;
+		Pool.EnemiesToSpawn += EnemiesToSpawnThisFrame;
+
+		// Spawner les ennemis entiers (on garde la partie fractionnaire pour le prochain frame)
+		while (Pool.EnemiesToSpawn >= 1.0f)
+		{
+			SpawnEnemyFromPool(i, Pool);
+			Pool.EnemiesToSpawn -= 1.0f;
+		}
 	}
 }
+
+void AEnemyPoolManager::SpawnEnemyFromPool(int32 PoolIndex, FEnemyPool& Pool)
+{
+	int32 SpawnPointCount = CachedPlayerCharacter->GetSpawnPointCountForPool(PoolIndex);
+
+	if (Pool.PooledEnemies.Num() == 0 || SpawnPointCount == 0) return;
+
+	// Récupérer le prochain ennemi
+	ACharacter* EnemyToActivate = Pool.PooledEnemies[Pool.NextIndex];
+
+	// Obtenir le point de spawn
+	FTransform TargetTransform = CachedPlayerCharacter->GetSpawnTransformForPool(PoolIndex, Pool.NextSpawnPointIndex);
+	FVector TargetLocation = TargetTransform.GetLocation();
+
+	// Activer l'ennemi
+	if (IsValid(EnemyToActivate))
+	{
+		ActivateEnemy(EnemyToActivate, TargetLocation, Pool.Archetype.Get());
+	}
+
+	// Passer au suivant (en boucle)
+	Pool.NextIndex = (Pool.NextIndex + 1) % Pool.PooledEnemies.Num();
+	Pool.NextSpawnPointIndex = (Pool.NextSpawnPointIndex + 1) % SpawnPointCount;
+}
+
 
 void AEnemyPoolManager::SpawnInitialPool()
 {
@@ -105,6 +163,14 @@ void AEnemyPoolManager::SpawnInitialPool()
 
 		EnemyPools.Add(NewPool);
 	}
+
+	// --- DEBUG : Afficher le résumé de la pool ---
+	int32 TotalEnemies = 0;
+	for (const FEnemyPool& Pool : EnemyPools)
+	{
+		TotalEnemies += Pool.PooledEnemies.Num();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("📦 POOL CRÉÉE: %d ennemis au total dans %d pools"), TotalEnemies, EnemyPools.Num());
 }
 
 void AEnemyPoolManager::OnTeleportTimerFired()
@@ -119,28 +185,24 @@ void AEnemyPoolManager::OnTeleportTimerFired()
 		return;
 	}
 
-	// 2. Obtenir les positions de spawn DYNAMIQUES actuelles du joueur
-	TArray<FTransform> SpawnTransforms;
-	CachedPlayerCharacter->GetEnemySpawnTransforms(SpawnTransforms);
-
-	// 3. S'assurer que le nombre de points de spawn correspond au nombre de pools
-	if (SpawnTransforms.Num() != EnemyPools.Num())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("EnemyPoolManager: Le nombre de pools (%d) ne correspond pas au nombre de points de spawn du joueur (%d)"), EnemyPools.Num(), SpawnTransforms.Num());
-		return;
-	}
-
-	// 4. Boucler sur chaque pool et téléporter un ennemi
+	// 2. Boucler sur chaque pool et téléporter un ennemi
+	// (L'index 'i' correspondra à 0=Small, 1=Medium, 2=Large, *SI* l'ordre est respecté)
 	for (int32 i = 0; i < EnemyPools.Num(); i++)
 	{
 		FEnemyPool& Pool = EnemyPools[i];
-		if (Pool.PooledEnemies.Num() == 0) continue;
+		// Demande au joueur "Combien de points de spawn as-tu pour ce pool (i)?"
+		int32 SpawnPointCount = CachedPlayerCharacter->GetSpawnPointCountForPool(i);
+
+		// S'assurer qu'on a des ennemis ET des points de spawn
+		if (Pool.PooledEnemies.Num() == 0 || SpawnPointCount == 0) continue;
 
 		// Récupérer le prochain ennemi "endormi"
 		ACharacter* EnemyToActivate = Pool.PooledEnemies[Pool.NextIndex];
 		
-		// Obtenir la position de la cible DEPUIS LE JOUEUR
-		FVector TargetLocation = SpawnTransforms[i].GetLocation();
+		// Obtenir le point SÉQUENTIEL pour ce pool
+		// "Donne-moi le transform pour le pool (i) au point (NextSpawnPointIndex)"
+		FTransform TargetTransform = CachedPlayerCharacter->GetSpawnTransformForPool(i, Pool.NextSpawnPointIndex);
+		FVector TargetLocation = TargetTransform.GetLocation();
 
 		// Activer et téléporter l'ennemi
 		if (IsValid(EnemyToActivate))
@@ -148,8 +210,11 @@ void AEnemyPoolManager::OnTeleportTimerFired()
 			ActivateEnemy(EnemyToActivate, TargetLocation, Pool.Archetype.Get());
 		}
 
-		// Passer au suivant pour la prochaine fois (en boucle)
+		// Passer à l'ennemi suivant pour la prochaine fois (en boucle)
 		Pool.NextIndex = (Pool.NextIndex + 1) % Pool.PooledEnemies.Num();
+
+		// Passer au point de spawn suivant pour la prochaine fois (en boucle)
+		Pool.NextSpawnPointIndex = (Pool.NextSpawnPointIndex + 1) % SpawnPointCount;
 	}
 	// --- FIN MODIFICATION ---
 }
@@ -157,6 +222,9 @@ void AEnemyPoolManager::OnTeleportTimerFired()
 void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
 {
 	if (!Enemy) return;
+
+	// --- DEBUG : Log quand un ennemi est désactivé ---
+	UE_LOG(LogTemp, Warning, TEXT("♻️ RECYCLAGE: Ennemi %s remis dans la pool (inactif)"), *Enemy->GetName());
 
 	// Cacher l'acteur
 	Enemy->SetActorHiddenInGame(true);
@@ -170,6 +238,28 @@ void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
 		AI->GetBrainComponent()->StopLogic(TEXT("Pooled"));
 	}
 
+	// --- OPTIMISATION CRITIQUE : Désactiver le tick de TOUS les composants ---
+	// Désactiver le tick du mesh (animations)
+	if (USkeletalMeshComponent* Mesh = Enemy->GetMesh())
+	{
+		Mesh->SetComponentTickEnabled(false);
+	}
+	
+	// Désactiver le tick du movement
+	if (UCharacterMovementComponent* MoveComp = Enemy->GetCharacterMovement())
+	{
+		MoveComp->SetComponentTickEnabled(false);
+	}
+	
+	// Désactiver le tick de l'acteur lui-même
+	Enemy->SetActorTickEnabled(false);
+	
+	// Désactiver le tick du contrôleur IA
+	if (AI)
+	{
+		AI->SetActorTickEnabled(false);
+	}
+
 	// Téléporter à la cachette
 	Enemy->SetActorLocation(HiddenSpawnLocation);
 }
@@ -177,6 +267,9 @@ void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
 void AEnemyPoolManager::ActivateEnemy(ACharacter* Enemy, const FVector& TeleportLocation, UMyEnemyArchetype* Archetype)
 {
 	if (!Enemy || !Archetype) return;
+
+	// --- DEBUG : Log quand un ennemi est activé ---
+	UE_LOG(LogTemp, Warning, TEXT("⚡ ACTIVATION: Ennemi %s sorti de la pool (actif)"), *Enemy->GetName());
 
 	// Téléporter à la position visible
 	Enemy->SetActorLocation(TeleportLocation);
@@ -186,11 +279,55 @@ void AEnemyPoolManager::ActivateEnemy(ACharacter* Enemy, const FVector& Teleport
 	// Activer les collisions
 	Enemy->SetActorEnableCollision(true);
 
-	// Démarrer le cerveau (le Behavior Tree)
+	// --- OPTIMISATION CRITIQUE : Réactiver le tick des composants ---
+	// Réactiver le tick de l'acteur
+	Enemy->SetActorTickEnabled(true);
+	
+	// --- OPTIMISATION IA : Réduire le tick rate du contrôleur IA ---
 	AAIController* AI = Cast<AAIController>(Enemy->GetController());
-	if (AI && Archetype->BehaviorTree)
+	if (AI)
 	{
-		AI->RunBehaviorTree(Archetype->BehaviorTree.Get());
+		// Réactiver le tick du contrôleur IA
+		AI->SetActorTickEnabled(true);
+	}
+	
+	AI = Cast<AAIController>(Enemy->GetController());
+	if (AI)
+	{
+		// Réduire la fréquence de tick de l'IA à 30 Hz (0.033s) pour un bon équilibre performance/fluidité
+		AI->SetActorTickInterval(0.033f);
+		
+		// Démarrer le Behavior Tree
+		if (Archetype->BehaviorTree)
+		{
+			AI->RunBehaviorTree(Archetype->BehaviorTree.Get());
+		}
+	}
+
+	// --- OPTIMISATION ANIMATIONS : Réduire le tick des animations ---
+	if (USkeletalMeshComponent* Mesh = Enemy->GetMesh())
+	{
+		// Réactiver le tick du mesh
+		Mesh->SetComponentTickEnabled(true);
+		
+		// Ne tick les animations que quand l'ennemi est visible à l'écran
+		Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+		
+		// Réduire la fréquence de tick des animations à 20 Hz (0.05s)
+		Mesh->SetComponentTickInterval(0.05f);
+		
+		// Désactiver les ombres dynamiques pour économiser du GPU
+		Mesh->SetCastShadow(false);
+	}
+
+	// --- OPTIMISATION MOUVEMENT : Simplifier les calculs ---
+	if (UCharacterMovementComponent* MoveComp = Enemy->GetCharacterMovement())
+	{
+		// Réactiver le tick du movement
+		MoveComp->SetComponentTickEnabled(true);
+		
+		// Réduire la fréquence de mise à jour du mouvement à 30 Hz (0.033s)
+		MoveComp->SetComponentTickInterval(0.033f); // 30 Hz pour un mouvement fluide
 	}
 }
 

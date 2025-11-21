@@ -33,6 +33,19 @@ struct FEnemyPool
 
 	// Index du prochain ennemi à utiliser
 	int32 NextIndex = 0;
+
+	// --- AJOUT : Index pour le spawn séquentiel ---
+	/** Index du prochain point de spawn à utiliser */
+	int32 NextSpawnPointIndex = 0;
+
+	/** Nombre d'ennemis à spawner (peut être fractionnaire pour accumulation) */
+	float EnemiesToSpawn = 0.0f;
+	// --- FIN AJOUT ---
+
+	// --- AJOUT : Tracking du temps de jeu pour les courbes ---
+	/** Temps de jeu écoulé depuis le début (en secondes) */
+	float GameTimeElapsed = 0.0f;
+	// --- FIN AJOUT ---
 };
 
 /**
@@ -46,6 +59,9 @@ class PROJETPROGFINAL_API AEnemyPoolManager : public AActor
 	
 public:	
 	AEnemyPoolManager();
+
+	// Override Tick for curve-based spawning
+	virtual void Tick(float DeltaTime) override;
 
 	// --- AJOUT : Nouvelle fonction publique ---
 public:
@@ -98,6 +114,9 @@ private:
 	/** Fonction pour pré-spawner tous les ennemis au début */
 	void SpawnInitialPool();
 
+	/** Spawner un ennemi depuis un pool spécifique */
+	void SpawnEnemyFromPool(int32 PoolIndex, FEnemyPool& Pool);
+
 	/** Le handle pour notre timer de 10s */
 	FTimerHandle TeleportTimerHandle;
 
@@ -109,5 +128,10 @@ private:
 	/** Référence au personnage joueur, mise en cache au BeginPlay */
 	UPROPERTY()
 	TObjectPtr<AProjetProgFinalCharacter> CachedPlayerCharacter;
+	// --- FIN AJOUT ---
+
+	// --- AJOUT : Tracking du temps de jeu pour les courbes ---
+	/** Temps de jeu écoulé depuis le début (en secondes) */
+	float GameTimeElapsed = 0.0f;
 	// --- FIN AJOUT ---
 };
