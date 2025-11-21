@@ -12,7 +12,6 @@
 #include "Logging/LogMacros.h"
 #include "PlayerStatType.h" // Enum des types de stats
 #include "DA_UpgradeBase.h" // DataAsset de base pour les upgrades
-//#include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 #include "ProjetProgFinalCharacter.generated.h"
 
@@ -22,9 +21,6 @@ class UInputMappingContext;
 class UInputAction;
 class UDA_UpgradeBase; // Idem pour DataAsset en class
 struct FInputActionValue;
-
-// La "forward declaration" n'est plus nécessaire
-// class USphereComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -145,6 +141,19 @@ protected:
 
 	float GlobalDamageMultiplier;
 
+	// --- SYSTEME D'INVICIBILITE APRES HIT ---
+	bool bIsInvincible = false;
+
+	// Le timer pour arrêter l'invincibilité
+	FTimerHandle InvincibilityTimerHandle;
+
+	// Fonction appelée après 2 secondes
+	void EndInvincibility();
+
+	// Événement pour le Blueprint (pour faire clignoter le perso rouge/transparent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Visuals")
+	void OnInvincibilityChanged(bool bIsInvincibleNow);
+
 public:
 	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -155,21 +164,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UPlayerDataAsset* StartingWeaponData;
-
-
-	// --- MODIFICATION : Remplacés par des TArrays ---
-	/** Groupe de points de spawn pour les petits ennemis (15) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
-	TArray<TObjectPtr<USphereComponent>> SmallSpawnPoints;
-
-	/** Groupe de points de spawn pour les ennemis moyens (10) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
-	TArray<TObjectPtr<USphereComponent>> MediumSpawnPoints;
-
-	/** Groupe de points de spawn pour les grands ennemis (5) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
-	TArray<TObjectPtr<USphereComponent>> LargeSpawnPoints;
-	// --- FIN MODIFICATION ---
 
 public:
 	// --- FONCTIONS PUBLIQUES ---
@@ -186,15 +180,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Upgrades")
 	void ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade);
 
-	// --- MODIFICATION : Fonctions mises à jour ---
-	/**
-	 * Renvoie un transform de spawn pour un pool et un index de point de spawn donnés.
-	 */
-	virtual FTransform GetSpawnTransformForPool(int32 PoolIndex, int32 SpawnPointIndex) const;
-
-	/**
-	 * Renvoie le nombre total de points de spawn pour un pool donné.
-	 */
-	virtual int32 GetSpawnPointCountForPool(int32 PoolIndex) const;
-	// --- FIN MODIFICATION ---
+	// --- Recoit des degats ---
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };

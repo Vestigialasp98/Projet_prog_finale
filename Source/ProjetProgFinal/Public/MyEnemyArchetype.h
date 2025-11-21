@@ -36,6 +36,9 @@ public :
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Stats")
 	float MoveSpeed = 600.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Stats")
+	float ContactDamage = 10.0f;
+
 	// Taille (échelle) de l'ennemi au spawn. (1.0, 1.0, 1.0) est la taille normale.
 	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Stats")
 	FVector SpawnScale = FVector::OneVector;*/
@@ -65,6 +68,10 @@ public :
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Spawning")
 	TObjectPtr<UCurveFloat> SpawnRateCurve;
+	 
+	// Drop d'EXP
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy|Loot")
+	TSubclassOf<AActor> LootDropClass;
 
 public:
 	// Permet de classer ce type d’asset dans le Primary Asset System (facultatif mais propre)

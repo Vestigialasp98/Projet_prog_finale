@@ -4,10 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-// --- CORRECTION ---
 // On inclut la définition complète car TObjectPtr en a besoin
 #include "MyEnemyArchetype.h"
-// --- FIN CORRECTION ---
 #include "EnemyPoolManager.generated.h"
 
 // Forward declarations
@@ -34,18 +32,14 @@ struct FEnemyPool
 	// Index du prochain ennemi à utiliser
 	int32 NextIndex = 0;
 
-	// --- AJOUT : Index pour le spawn séquentiel ---
-	/** Index du prochain point de spawn à utiliser */
+	// Index du prochain point de spawn à utiliser
 	int32 NextSpawnPointIndex = 0;
 
-	/** Nombre d'ennemis à spawner (peut être fractionnaire pour accumulation) */
+	// Nombre d'ennemis à spawner (peut être fractionnaire pour accumulation)
 	float EnemiesToSpawn = 0.0f;
-	// --- FIN AJOUT ---
 
-	// --- AJOUT : Tracking du temps de jeu pour les courbes ---
-	/** Temps de jeu écoulé depuis le début (en secondes) */
+	// Temps de jeu écoulé depuis le début (en secondes)
 	float GameTimeElapsed = 0.0f;
-	// --- FIN AJOUT ---
 };
 
 /**
@@ -60,78 +54,74 @@ class PROJETPROGFINAL_API AEnemyPoolManager : public AActor
 public:	
 	AEnemyPoolManager();
 
-	// Override Tick for curve-based spawning
 	virtual void Tick(float DeltaTime) override;
 
-	// --- AJOUT : Nouvelle fonction publique ---
 public:
-	/**
-	 * Demande au manager de recycler un ennemi (le remet dans le pool).
-	 * Appelable depuis les Blueprints (ex: quand l'ennemi "meurt").
-	 */
+	// Demande au manager de recycler un ennemi (le remet dans le pool) en BP
 	UFUNCTION(BlueprintCallable, Category = "Enemy Pool Manager")
 	void RecycleEnemy(ACharacter* EnemyToRecycle);
-	// --- FIN AJOUT ---
 
 protected:
 	virtual void BeginPlay() override;
 
-	/** Les 3 archétypes (Small, Medium, Big) que nous allons gérer.
-	 * L'ordre est important ! */
+	// Les 3 archétypes (Small, Medium, Big) que nous allons gérer
+	// L'ordre est important !
 	UPROPERTY(EditInstanceOnly, Category = "Config|Pool")
 	TArray<TObjectPtr<UMyEnemyArchetype>> ArchetypesToPool;
 
-	/** Le nombre d'ennemis à pré-spawner pour CHAQUE type. */
+	// Le nombre d'ennemis à pré-spawner pour chaque type
 	UPROPERTY(EditInstanceOnly, Category = "Config|Pool")
 	int32 InitialPoolSizePerArchetype = 300;
 
-	/** La position cachée où les ennemis sont spawnés et attendent. */
+	// La position cachée où les ennemis sont spawnés et attendent
 	UPROPERTY(EditInstanceOnly, Category = "Config|Pool")
 	FVector HiddenSpawnLocation = FVector(0.f, 0.f, -2000.f);
 
-	// --- SUPPRESSION : Remplacé par la logique dynamique ---
-	/** Les 3 acteurs cibles (ex: ATargetPoint) où téléporter les ennemis.
-	 * DOIT correspondre à l'ordre de 'ArchetypesToPool'.
-	 */
-	// UPROPERTY(EditInstanceOnly, Category = "Config|Teleport")
-	// TArray<AActor*> TeleportTargets;
-	// --- FIN SUPPRESSION ---
-
-	/** L'intervalle (en secondes) entre chaque téléportation. */
+	// L'intervalle (en secondes) entre chaque téléportation
 	UPROPERTY(EditInstanceOnly, Category = "Config|Teleport")
 	float TeleportInterval = 5.0f;
 
+	// Distances de spawn (Remplacent les positions des sphères)
+	UPROPERTY(EditDefaultsOnly, Category = "Config|Spawning")
+	float SpawnDistanceSmall = 1500.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Config|Spawning")
+	float SpawnDistanceMedium = 2000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Config|Spawning")
+	float SpawnDistanceLarge = 2500.0f;
+
 private:
-	/** La fonction qui s'exécute toutes les 10 secondes */
+	// La fonction qui s'exécute toutes les 10 secondes
 	void OnTeleportTimerFired();
 
-	/** Fonction pour cacher et désactiver un ennemi */
+	// Fonction pour cacher et désactiver un ennemi
 	void DeactivateEnemy(ACharacter* Enemy);
 
-	/** Fonction pour activer et téléporter un ennemi */
+	// Fonction pour activer et téléporter un ennemi
 	void ActivateEnemy(ACharacter* Enemy, const FVector& TeleportLocation, UMyEnemyArchetype* Archetype);
 
-	/** Fonction pour pré-spawner tous les ennemis au début */
+	// Fonction pour pré-spawner tous les ennemis au début
 	void SpawnInitialPool();
 
-	/** Spawner un ennemi depuis un pool spécifique */
+	// Spawn un ennemi depuis un pool spécifique
 	void SpawnEnemyFromPool(int32 PoolIndex, FEnemyPool& Pool);
 
-	/** Le handle pour notre timer de 10s */
+	// Le handle pour le timer de 10s
 	FTimerHandle TeleportTimerHandle;
 
-	/** Nos pools d'ennemis (ex: 1 pool pour "Small", 1 pour "Medium", etc.) */
+	// Pools d'ennemis
 	UPROPERTY()
 	TArray<FEnemyPool> EnemyPools;
 
-	// --- AJOUT : Référence au joueur ---
-	/** Référence au personnage joueur, mise en cache au BeginPlay */
+	// Référence au personnage joueur, mise en cache au BeginPlay
 	UPROPERTY()
 	TObjectPtr<AProjetProgFinalCharacter> CachedPlayerCharacter;
-	// --- FIN AJOUT ---
 
-	// --- AJOUT : Tracking du temps de jeu pour les courbes ---
-	/** Temps de jeu écoulé depuis le début (en secondes) */
+
+	// Temps de jeu écoulé depuis le début (en secondes)
 	float GameTimeElapsed = 0.0f;
-	// --- FIN AJOUT ---
+
+	// Nouvelle fonction pour calculer une position sans aide du Character
+	FVector GetRandomSpawnLocationAroundPlayer(float Distance);
 };

@@ -78,87 +78,15 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 
 	// --- Valeurs de base du character ---
 	MaxHealth = 100;
-	CurrentHealth = 120;
+	CurrentHealth = 100;
 	MovementSpeed = 500.f;
 	HealthRegenAmount = 0.0f;
 	GlobalDamageMultiplier = 1.0f;
+	bIsInvincible = false;
 
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
-	CurrentPlayerLevel = 1;
-
-	// --- MODIFICATION : Création des 30 SceneComponents pour les spawn points ---
-	
-	// Créer les 15 points Small
-	for (int32 i = 0; i < 15; ++i)
-	{
-		// Crée un nom unique comme "SpawnPoint_Small_0", "SpawnPoint_Small_1", etc.
-		FName ComponentName = FName(TEXT("SpawnPoint_Small_%d"), i);
-		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
-		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
-		NewPoint->SetupAttachment(RootComponent);
-		
-		// Position initiale (ex: en cercle autour de la caméra)
-		float Angle = (float)i / 15.0f * 360.0f;
-		// Position sur le plan XY (Z=0 par rapport au joueur)
-		FVector Location = FVector(FMath::Cos(Angle) * 1500.f, FMath::Sin(Angle) * 1500.f, 0.f);
-		NewPoint->SetRelativeLocation(Location);
-
-		// --- AJOUT : Configuration de la sphère ---
-		NewPoint->InitSphereRadius(30.0f); // Taille de la sphère
-		NewPoint->SetHiddenInGame(false); // On la rend visible en jeu (pour débogage)
-		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Pas de collision
-		NewPoint->ShapeColor = FColor::Green; // Couleur de la sphère (visible dans l'éditeur)
-		// --- FIN AJOUT ---
-
-		SmallSpawnPoints.Add(NewPoint);
-	}
-
-	// Créer les 10 points Medium
-	for (int32 i = 0; i < 10; ++i)
-	{
-		FName ComponentName = FName(TEXT("SpawnPoint_Medium_%d"), i);
-		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
-		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
-		NewPoint->SetupAttachment(RootComponent);
-
-		float Angle = (float)i / 10.0f * 360.0f;
-		// Position sur le plan XY (Z=0 par rapport au joueur)
-		FVector Location = FVector(FMath::Cos(Angle) * 2000.f, FMath::Sin(Angle) * 2000.f, 0.f);
-		NewPoint->SetRelativeLocation(Location);
-
-		// --- AJOUT : Configuration de la sphère ---
-		NewPoint->InitSphereRadius(50.0f);
-		NewPoint->SetHiddenInGame(false);
-		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		NewPoint->ShapeColor = FColor::Yellow;
-		// --- FIN AJOUT ---
-
-		MediumSpawnPoints.Add(NewPoint);
-	}
-
-	// Créer les 5 points Large
-	for (int32 i = 0; i < 5; ++i)
-	{
-		FName ComponentName = FName(TEXT("SpawnPoint_Large_%d"), i);
-		USphereComponent* NewPoint = CreateDefaultSubobject<USphereComponent>(ComponentName);
-		// --- CORRECTION : Attacher au RootComponent (la capsule) ---
-		NewPoint->SetupAttachment(RootComponent);
-		
-		float Angle = (float)i / 5.0f * 360.0f;
-		// Position sur le plan XY (Z=0 par rapport au joueur)
-		FVector Location = FVector(FMath::Cos(Angle) * 2500.f, FMath::Sin(Angle) * 2500.f, 0.f);
-		NewPoint->SetRelativeLocation(Location);
-
-		// --- AJOUT : Configuration de la sphère ---
-		NewPoint->InitSphereRadius(80.0f);
-		NewPoint->SetHiddenInGame(false);
-		NewPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		NewPoint->ShapeColor = FColor::Red;
-		// --- FIN AJOUT ---
-
-		LargeSpawnPoints.Add(NewPoint);
-	}
+	CurrentPlayerLevel = 1;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,19 +191,29 @@ void AProjetProgFinalCharacter::TriggerHealthRegen()
 
 void AProjetProgFinalCharacter::AddEXP(float Amount)
 {
-	CurrentEXP += Amount;
+	// Si on choisit deja l'upgrade, prend l'exp mais ne level up pas
+	if (bIsChoosingUpgrade)
+	{
+		CurrentEXP += Amount;
+		return;
+	}
 
+	CurrentEXP += Amount;
 	bool bDidLevelUp = false;
 
+	// Level up
 	while (CurrentEXP >= EXPToNextLevel)
 	{
 		bDidLevelUp = true;
+		bIsChoosingUpgrade = true;
 
+		UpdateEXP_UI(0.0f, EXPToNextLevel * 1.2f, CurrentPlayerLevel + 1);
 		ShowLevelUpScreen();
 
 		break;
 	}
 
+	// Augmente l'EXP
 	if (!bDidLevelUp)
 	{
 		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
@@ -485,10 +423,10 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		}
 	}
 
+	bIsChoosingUpgrade = false;
+
 	// Relance la vérification d'EXP 
 	AddEXP(0.0f);
-
-	// Mettre à jour le UI
 	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }
 
@@ -511,53 +449,54 @@ void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, 
 	}
 }
 
-FTransform AProjetProgFinalCharacter::GetSpawnTransformForPool(int32 PoolIndex, int32 SpawnPointIndex) const
+float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// --- CHNAGEMENT DE TYPE ---
-	const TArray<TObjectPtr<USphereComponent>>* TargetArray = nullptr;
-	// --- FIN CHNAGEMENT ---
-
-	// L'ordre (0, 1, 2) est basé sur l'ordre dans le PoolManager
-	switch (PoolIndex)
+	// Si invincible, refuse les dégats
+	if (bIsInvincible)
 	{
-	case 0:
-		TargetArray = &SmallSpawnPoints;
-		break;
-	case 1:
-		TargetArray = &MediumSpawnPoints;
-		break;
-	case 2:
-		TargetArray = &LargeSpawnPoints;
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("GetSpawnTransformForPool: Index de pool (%d) non valide !"), PoolIndex);
-		return GetActorTransform();
+		return 0.0f;
 	}
 
-	// S'assurer que le tableau a des points et que l'index est valide
-	if (TargetArray && TargetArray->IsValidIndex(SpawnPointIndex) && (*TargetArray)[SpawnPointIndex])
+	// Appel au parent
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// Appliquer les dégats
+	int32 DamageInt = FMath::RoundToInt(ActualDamage);
+	CurrentHealth -= DamageInt;
+
+	// Debug pour voir si ça marche
+	UE_LOG(LogTemp, Warning, TEXT("OUCH! Pris %d degats. PV restants : %d"), DamageInt, CurrentHealth);
+
+	// Vérifie s'il est mort
+	if (CurrentHealth <= 0)
 	{
-		// Renvoyer le transform de ce point
-		return (*TargetArray)[SpawnPointIndex]->GetComponentTransform();
+		CurrentHealth = 0;
+		// GameOver()
+		
+	}
+	else
+	{
+		// Active l'invicibilité
+		bIsInvincible = true;
+
+		// Lancer le timer de 2 secondes
+		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 2.0f, false);
+
+		// Prévenir le Blueprint
+		OnInvincibilityChanged(true);
 	}
 
-	// Fallback au cas où le tableau est vide ou l'index est mauvais
-	UE_LOG(LogTemp, Warning, TEXT("GetSpawnTransformForPool: Le pool (%d) n'a pas pu trouver le point de spawn (%d) !"), PoolIndex, SpawnPointIndex);
-	return GetActorTransform();
+	// Update Health UI
+	UpdateHealthUI();
+
+	return ActualDamage;
 }
 
-int32 AProjetProgFinalCharacter::GetSpawnPointCountForPool(int32 PoolIndex) const
+void AProjetProgFinalCharacter::EndInvincibility()
 {
-	switch (PoolIndex)
-	{
-	case 0:
-		return SmallSpawnPoints.Num();
-	case 1:
-		return MediumSpawnPoints.Num();
-	case 2:
-		return LargeSpawnPoints.Num();
-	default:
-		return 0;
-	}
+	// Le temps est écoulé, on redevient vulnérable
+	bIsInvincible = false;
+
+	// Prévenir le Blueprint (Arrêter le clignotement)
+	OnInvincibilityChanged(false);
 }
-// --- FIN MODIFICATION ---
