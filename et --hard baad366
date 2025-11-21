@@ -1,0 +1,147 @@
+[33m9283a40[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDevZach[m[33m)[m HEAD@{0}: checkout: moving from MergeUpgradeEnemy1 to DevZach
+[33mc47443e[m[33m ([m[1;32mMergeUpgradeEnemy1[m[33m)[m HEAD@{1}: checkout: moving from DevZach to MergeUpgradeEnemy1
+[33m9283a40[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDevZach[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m9283a40[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mDevZach[m[33m)[m HEAD@{3}: 
+[33mbaad366[m HEAD@{4}: commit: Configure Git LFS for large assets
+[33m6d05d20[m HEAD@{5}: checkout: moving from MergeUpgradeEnemy1 to DevZach
+[33m8d21868[m HEAD@{6}: reset: moving to HEAD
+[33m8d21868[m HEAD@{7}: reset: moving to HEAD
+[33m8d21868[m HEAD@{8}: checkout: moving from DevZach to MergeUpgradeEnemy1
+[33m6d05d20[m HEAD@{9}: checkout: moving from MergeUpgradeEnemy1 to DevZach
+[33m8d21868[m HEAD@{10}: reset: moving to HEAD
+[33m8d21868[m HEAD@{11}: checkout: moving from DevJulien to MergeUpgradeEnemy1
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{12}: checkout: moving from DevZach to DevJulien
+[33m6d05d20[m HEAD@{13}: checkout: moving from DevJulien to DevZach
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{14}: checkout: moving from DevZach to DevJulien
+[33m6d05d20[m HEAD@{15}: reset: moving to HEAD
+[33m6d05d20[m HEAD@{16}: checkout: moving from UnderDevJulien to DevZach
+[33mbed8d4e[m[33m ([m[1;31morigin/UnderDevJulien[m[33m)[m HEAD@{17}: checkout: moving from DevZach to UnderDevJulien
+[33m6d05d20[m HEAD@{18}: commit: Map
+[33m12797c9[m[33m ([m[1;31morigin/DevZach[m[33m)[m HEAD@{19}: merge UnderDevJulien: Fast-forward
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{20}: checkout: moving from UnderDevJulien to DevZach
+[33m12797c9[m[33m ([m[1;31morigin/DevZach[m[33m)[m HEAD@{21}: checkout: moving from DevZach to UnderDevJulien
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{22}: checkout: moving from Master to DevZach
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{23}: checkout: moving from DevZach to Master
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{24}: checkout: moving from DevJulien to DevZach
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{25}: checkout: moving from Master to DevJulien
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{26}: checkout: moving from main to Master
+[33mb8b7f37[m HEAD@{27}: checkout: moving from Master to main
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{28}: checkout: moving from Julien to Master
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{29}: checkout: moving from Zach to Julien
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{30}: checkout: moving from main to Zach
+[33mb8b7f37[m HEAD@{31}: checkout: moving from main to main
+[33mb8b7f37[m HEAD@{32}: checkout: moving from Julien to main
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{33}: checkout: moving from main to Julien
+[33mb8b7f37[m HEAD@{34}: commit (merge): Merge branch 'Julien'
+[33m0aa41f7[m HEAD@{35}: checkout: moving from Julien to main
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{36}: reset: moving to HEAD
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{37}: checkout: moving from main to Julien
+[33m0aa41f7[m HEAD@{38}: reset: moving to HEAD
+[33m0aa41f7[m HEAD@{39}: reset: moving to HEAD
+[33m0aa41f7[m HEAD@{40}: checkout: moving from Julien to main
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{41}: checkout: moving from Zach to Julien
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{42}: checkout: moving from Julien to Zach
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{43}: checkout: moving from main to Julien
+[33m0aa41f7[m HEAD@{44}: checkout: moving from Zach to main
+[33m032be7b[m HEAD@{45}: checkout: moving from Julien to Zach
+[33m39ee33d[m[33m ([m[1;31morigin/Master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{46}: commit: SA MARCH!!!!!
+[33m00afe65[m HEAD@{47}: commit (merge): Merge branch 'OldZachVersion' into Julien
+[33m7ab54e6[m HEAD@{48}: checkout: moving from OldZachVersion to Julien
+[33m4297ffe[m HEAD@{49}: checkout: moving from main to OldZachVersion
+[33m0aa41f7[m HEAD@{50}: checkout: moving from Julien to main
+[33m7ab54e6[m HEAD@{51}: checkout: moving from Zach to Julien
+[33m032be7b[m HEAD@{52}: checkout: moving from main to Zach
+[33m0aa41f7[m HEAD@{53}: checkout: moving from Master to main
+[33m7ab54e6[m HEAD@{54}: checkout: moving from main to Master
+[33m0aa41f7[m HEAD@{55}: revert: Revert "Merge branch 'main' into PlayerDev"
+[33m010f064[m HEAD@{56}: checkout: moving from Master to main
+[33m7ab54e6[m HEAD@{57}: checkout: moving from Zach to Master
+[33m032be7b[m HEAD@{58}: checkout: moving from Master to Zach
+[33m7ab54e6[m HEAD@{59}: checkout: moving from main to Master
+[33m010f064[m HEAD@{60}: checkout: moving from main to main
+[33m010f064[m HEAD@{61}: checkout: moving from Master to main
+[33m7ab54e6[m HEAD@{62}: checkout: moving from Julien to Master
+[33m7ab54e6[m HEAD@{63}: checkout: moving from main to Julien
+[33m010f064[m HEAD@{64}: checkout: moving from Julien to main
+[33m7ab54e6[m HEAD@{65}: checkout: moving from SousBrancheJulien to Julien
+[33m032be7b[m HEAD@{66}: checkout: moving from Julien to SousBrancheJulien
+[33m7ab54e6[m HEAD@{67}: checkout: moving from SousBrancheJulien to Julien
+[33m032be7b[m HEAD@{68}: checkout: moving from Zach to SousBrancheJulien
+[33m032be7b[m HEAD@{69}: checkout: moving from SousBrancheJulien to Zach
+[33m032be7b[m HEAD@{70}: merge ZachDev: Fast-forward
+[33m7ab54e6[m HEAD@{71}: checkout: moving from ZachDev to SousBrancheJulien
+[33m032be7b[m HEAD@{72}: checkout: moving from main to ZachDev
+[33m010f064[m HEAD@{73}: checkout: moving from ZachDev to main
+[33m032be7b[m HEAD@{74}: checkout: moving from SousBrancheJulien to ZachDev
+[33m7ab54e6[m HEAD@{75}: checkout: moving from ZachDev to SousBrancheJulien
+[33m032be7b[m HEAD@{76}: checkout: moving from main to ZachDev
+[33m010f064[m HEAD@{77}: checkout: moving from ZachDev to main
+[33m032be7b[m HEAD@{78}: checkout: moving from PlayerDev to ZachDev
+[33m032be7b[m HEAD@{79}: checkout: moving from main to PlayerDev
+[33m010f064[m HEAD@{80}: checkout: moving from branchJulien to main
+[33m032be7b[m HEAD@{81}: checkout: moving from SousBrancheJulien to branchJulien
+[33m7ab54e6[m HEAD@{82}: checkout: moving from main to SousBrancheJulien
+[33m010f064[m HEAD@{83}: checkout: moving from PlayerDev to main
+[33m032be7b[m HEAD@{84}: checkout: moving from branchJulien to PlayerDev
+[33m032be7b[m HEAD@{85}: checkout: moving from PlayerDev to branchJulien
+[33m032be7b[m HEAD@{86}: checkout: moving from branchJulien to PlayerDev
+[33m032be7b[m HEAD@{87}: merge PlayerDev: Fast-forward
+[33m7ab54e6[m HEAD@{88}: checkout: moving from PlayerDev to branchJulien
+[33m032be7b[m HEAD@{89}: checkout: moving from branchJulien to PlayerDev
+[33m7ab54e6[m HEAD@{90}: checkout: moving from main to branchJulien
+[33m010f064[m HEAD@{91}: checkout: moving from PlayerDev to main
+[33m032be7b[m HEAD@{92}: commit: correctif
+[33m09cad66[m HEAD@{93}: revert: Revert "Merge branch 'main' into PlayerDev"
+[33m010f064[m HEAD@{94}: checkout: moving from MergeUpgradeEnemy1 to PlayerDev
+[33mf03681e[m HEAD@{95}: revert: Revert "Merge branch 'main' into MergeUpgradeEnemy1"
+[33m4054390[m HEAD@{96}: reset: moving to 40543904213f2aee14ad227b7e4b959142085a6e
+[33m2f3f273[m HEAD@{97}: revert: Revert "Merge branch 'main' into MergeUpgradeEnemy1"
+[33m4054390[m HEAD@{98}: checkout: moving from PlayerDev to MergeUpgradeEnemy1
+[33m010f064[m HEAD@{99}: checkout: moving from main to PlayerDev
+[33m010f064[m HEAD@{100}: checkout: moving from branchJulien to main
+[33m7ab54e6[m HEAD@{101}: checkout: moving from main to branchJulien
+[33m010f064[m HEAD@{102}: checkout: moving from branchJulien to main
+[33m7ab54e6[m HEAD@{103}: checkout: moving from main to branchJulien
+[33m010f064[m HEAD@{104}: checkout: moving from branchJulien to main
+[33m7ab54e6[m HEAD@{105}: checkout: moving from main to branchJulien
+[33m010f064[m HEAD@{106}: checkout: moving from PlayerDev to main
+[33m010f064[m HEAD@{107}: checkout: moving from branchJulien to PlayerDev
+[33m7ab54e6[m HEAD@{108}: checkout: moving from MergeUpgradeEnemy1 to branchJulien
+[33m4054390[m HEAD@{109}: commit (merge): Merge branch 'main' into MergeUpgradeEnemy1
+[33m10e460d[m HEAD@{110}: checkout: moving from main to MergeUpgradeEnemy1
+[33m010f064[m HEAD@{111}: merge PlayerDev: Fast-forward
+[33m7ab54e6[m HEAD@{112}: checkout: moving from PlayerDev to main
+[33m010f064[m HEAD@{113}: commit (merge): Merge branch 'main' into PlayerDev
+[33m4297ffe[m HEAD@{114}: checkout: moving from main to PlayerDev
+[33m7ab54e6[m HEAD@{115}: merge branchJulien: Fast-forward
+[33m3715521[m HEAD@{116}: checkout: moving from branchJulien to main
+[33m7ab54e6[m HEAD@{117}: checkout: moving from UpgradeSystemBranch to branchJulien
+[33md0ec1b0[m HEAD@{118}: checkout: moving from PlayerDev to UpgradeSystemBranch
+[33m4297ffe[m HEAD@{119}: commit: Effet de slash
+[33m5469539[m HEAD@{120}: commit: collision box d'attaque
+[33m3715521[m HEAD@{121}: checkout: moving from main to PlayerDev
+[33m3715521[m HEAD@{122}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33m8cc3af2[m HEAD@{123}: merge MergeUpgradeEnemy1: Fast-forward
+[33m1fb4b27[m HEAD@{124}: checkout: moving from MergeUpgradeEnemy1 to main
+[33m8cc3af2[m HEAD@{125}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33mb1d1c82[m HEAD@{126}: commit: merge
+[33me0d1363[m HEAD@{127}: commit (merge): Merge branch 'UpgradeSystemBranch' into MergeUpgradeEnemy1
+[33m31b60f8[m HEAD@{128}: checkout: moving from UpgradeSystemBranch to MergeUpgradeEnemy1
+[33md0ec1b0[m HEAD@{129}: checkout: moving from UIDev to UpgradeSystemBranch
+[33m7433805[m HEAD@{130}: checkout: moving from MergeUpgradeEnemy1 to UIDev
+[33m31b60f8[m HEAD@{131}: checkout: moving from UIDev to MergeUpgradeEnemy1
+[33m7433805[m HEAD@{132}: checkout: moving from MergeUpgradeEnemy1 to UIDev
+[33m31b60f8[m HEAD@{133}: checkout: moving from UIDev to MergeUpgradeEnemy1
+[33m7433805[m HEAD@{134}: checkout: moving from MergeUpgradeEnemy1 to UIDev
+[33m31b60f8[m HEAD@{135}: checkout: moving from UIDev to MergeUpgradeEnemy1
+[33m7433805[m HEAD@{136}: checkout: moving from EnemyDev to UIDev
+[33m31b60f8[m HEAD@{137}: checkout: moving from UIDev to EnemyDev
+[33m7433805[m HEAD@{138}: checkout: moving from EnemyDev to UIDev
+[33m31b60f8[m HEAD@{139}: checkout: moving from UpgradeSystemBranch to EnemyDev
+[33md0ec1b0[m HEAD@{140}: checkout: moving from UIDev to UpgradeSystemBranch
+[33m7433805[m HEAD@{141}: checkout: moving from main to UIDev
+[33m1fb4b27[m HEAD@{142}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33m2ba5ed9[m HEAD@{143}: checkout: moving from Julien to main
+[33m2ba5ed9[m HEAD@{144}: checkout: moving from main to Julien
+[33m2ba5ed9[m HEAD@{145}: commit: setup gitignore
+[33m77789c7[m HEAD@{146}: commit (initial): Initial commit
