@@ -510,7 +510,6 @@ void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, 
 		ActiveWeapons.Add(NewWeapon);
 	}
 }
-// --- MODIFICATION : Implémentation des nouvelles fonctions ---
 
 FTransform AProjetProgFinalCharacter::GetSpawnTransformForPool(int32 PoolIndex, int32 SpawnPointIndex) const
 {

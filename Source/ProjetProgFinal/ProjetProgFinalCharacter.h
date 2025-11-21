@@ -61,6 +61,7 @@ public:
 	AProjetProgFinalCharacter();
 	
 protected:
+	virtual void BeginPlay();
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
