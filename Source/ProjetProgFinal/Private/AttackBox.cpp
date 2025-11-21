@@ -2,6 +2,7 @@
 
 
 #include "AttackBox.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AAttackBox::AAttackBox()
@@ -12,9 +13,10 @@ AAttackBox::AAttackBox()
 	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	RootComponent = Box;
 
+	Box->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Box->SetHiddenInGame(false);
 	Box->SetBoxExtent(FVector(50.f, 50.f, 50.f));
-	Box->SetCollisionProfileName("OverlapAll");
+	Box->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 
@@ -22,7 +24,7 @@ AAttackBox::AAttackBox()
 void AAttackBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Box->OnComponentBeginOverlap.AddDynamic(this, &AAttackBox::OnOverlapBegin);
 }
 
 // Called every frame
@@ -32,19 +34,40 @@ void AAttackBox::Tick(float DeltaTime)
 
 }
 
-void AAttackBox::SetupHitbox(const FVector& Scale, float Duration)
+void AAttackBox::SetupHitbox(const FVector& Scale, float Duration, float InDamage)
 {
+
 	Box->SetWorldScale3D(Scale);
 	SetLifeSpan(Duration);
-
-	/*DrawDebugBox(
-		GetWorld(),
-		GetActorLocation(),
-		Box->GetScaledBoxExtent(),
-		GetActorQuat(),
-		FColor::Red,
-		false,
-		0.5f
-	);*/
+	DamageAmount = InDamage;
+	Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
+void AAttackBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Si valide
+	if (!OtherActor || OtherActor == this || OtherActor == GetOwner()) return;
+
+	if (HitActors.Contains(OtherActor))
+	{
+		// Si l'acteur a deja ete touche (evite le double damage)
+		return;
+	}
+
+	HitActors.Add(OtherActor);
+	
+	// Verifie si c'est un ennemi (avec un tag)
+	if (OtherActor->ActorHasTag("Enemy"))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit Enemy! Sending Damage: %f"), DamageAmount);
+
+		// Applique les degats standards d'Unreal
+		UGameplayStatics::ApplyDamage(
+			OtherActor,
+			DamageAmount,
+			GetInstigatorController(),
+			this,
+			UDamageType::StaticClass()
+		);
+	}
+}
