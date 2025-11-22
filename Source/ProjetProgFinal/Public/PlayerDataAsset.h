@@ -20,7 +20,7 @@ public:
 	float Cooldown = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Range; // pas sur de la pertinence de cette variable je rsique de l'enlever plus tard
+	float Range;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float DMG;

@@ -19,9 +19,6 @@ class PROJETPROGFINAL_API UMyEnemyArchetype : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public :
-	//uproperty pawn blueprint override
-	
-	
 	// Classe Character de l’ennemi (souvent un Blueprint dérivé de BP_ThirdPersonCharacter)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy")
 	TSubclassOf<ACharacter> EnemyClass;
@@ -50,8 +47,6 @@ public :
 	// Tag(s) de gameplay, icône, etc. (optionnels)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy|Meta")
 	FName EnemyId = NAME_None;
-
-	// --- AJOUT : Courbe de spawn dynamique ---
 	
 	/**
 	 * Courbe définissant le taux de spawn en fonction du temps de jeu.

@@ -9,19 +9,24 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnemyPoolManager.h"
 
-// Sets default values
 AEnemyBase::AEnemyBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	Tags.Add(FName("Enemy"));
 
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+
+	GetCharacterMovement()->bUseRVOAvoidance = true;
+	GetCharacterMovement()->AvoidanceWeight = 0.5f;
+
+	GetCharacterMovement()->MaxDepenetrationWithGeometry = 500.0f;
+	GetCharacterMovement()->MaxDepenetrationWithPawn = 100.0f;
+	 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-// Called when the game starts or when spawned
 void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -31,7 +36,6 @@ void AEnemyBase::BeginPlay()
 	AActor* ManagerActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyPoolManager::StaticClass());
 	PoolManagerRef = Cast<AEnemyPoolManager>(ManagerActor);
 }
-
 
 // Called to bind functionality to input
 void AEnemyBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -44,10 +48,8 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	// Appliquer les dégâts
+	// Applique les dégâts
 	CurrentHealth -= ActualDamage;
-
-	UE_LOG(LogTemp, Warning, TEXT("Enemy %s took %f damage. HP: %f"), *GetName(), ActualDamage, CurrentHealth);
 
 	if (DamagePopupClass)
 	{
@@ -67,11 +69,11 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 
 		if (Popup)
 		{
-			// C'est ici qu'on passe le chiffre au Blueprint !
+			// C'est ici qu'on passe le chiffre au Blueprint
 			Popup->UpdateDamageVisuals(ActualDamage);
 		}
 	}
-	// Vérifier la mort
+	// Vérifie la mort
 	if (CurrentHealth <= 0.0f)
 	{
 		Die();
@@ -84,17 +86,32 @@ void AEnemyBase::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiv
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 
-	// Vérifier si on touche le Joueur
+	// Vérifie si on touche le Joueur
 	if (Other && Other->IsA(AProjetProgFinalCharacter::StaticClass()))
 	{
-		// Appliquer les dégâts
+		// Applique les dégâts
 		UGameplayStatics::ApplyDamage(
 			Other,              // La victime (Le joueur)
-			AttackDamage,       // Le montant (venant de l'Archetype)
-			GetController(),    // L'instigateur (L'ennemi)
-			this,               // La source des dégâts
+			AttackDamage,       // Le montant
+			GetController(),    // L'instigateur (l'ennemi)
+			this,               
 			UDamageType::StaticClass()
 		);
+	}
+}
+
+void AEnemyBase::FellOutOfWorld(const UDamageType& dmgType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Ennemi tombé dans le vide -> Recyclage immédiat"));
+
+	if (PoolManagerRef)
+	{
+		CurrentHealth = MaxHealth; // Reset PV
+		PoolManagerRef->RecycleEnemy(this);
+	}
+	else
+	{
+		Destroy(); // Fallback
 	}
 }
 

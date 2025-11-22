@@ -14,7 +14,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Components/SphereComponent.h"
-#include "Components/SceneComponent.h" // Assurez-vous que cet include est là
+#include "Components/SceneComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -35,8 +35,6 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...  
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -44,22 +42,20 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// --- MODIFICATION POUR CAMÉRA STATIQUE ---
-
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	
-	// Longueur de la "perche" de la caméra (distance par rapport au joueur)
+	// Longueur de la "perche" de la caméra
 	CameraBoom->TargetArmLength = 1000.0f; 
 	
 	// On fixe la rotation du boom pour qu'il regarde d'en haut (ex: -70 degrés)
 	CameraBoom->SetRelativeRotation(FRotator(-70.0f, 0.0f, 0.0f));
 
-	// On DÉSACTIVE la rotation du boom par la souris/contrôleur
+	// Désactive la rotation du boom par la souris/contrôleur
 	CameraBoom->bUsePawnControlRotation = false; 
 
-	// On s'assure que le boom ne tourne pas bizarrement si le personnage s'incline
+	// S'assure que le boom ne tourne pas bizarrement si le personnage s'incline
 	CameraBoom->bInheritPitch = false;
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
@@ -71,10 +67,6 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// La caméra elle-même ne doit pas tourner par rapport au boom
 	FollowCamera->bUsePawnControlRotation = false; 
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-
-	// --- Magnet range for exp pickup ---
 
 	// --- Valeurs de base du character ---
 	MaxHealth = 100;
@@ -130,9 +122,6 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
-
-		// Looking
-		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
 	}
 }
 
@@ -161,8 +150,6 @@ void AProjetProgFinalCharacter::Move(const FInputActionValue& Value)
 
 void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 {
-	// (Cette fonction n'est plus appelée, mais on la laisse au cas où)
-	
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -321,17 +308,17 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre à jour le niveau
+	// Met à jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
 	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
 
-	// Gérer la logique de Level Up
+	// Gére la logique de Level Up
 	CurrentPlayerLevel++;
 	CurrentEXP -= EXPToNextLevel;
-	EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP à avoir pour level up
+	EXPToNextLevel *= 1.2; // Multiplicateur pour l'EXP à avoir pour level up
 
-	// Trouver l'arme cible
+	// Trouve l'arme cible
 	AWeaponBase* TargetWeapon = nullptr;
 	if (ChosenUpgrade->WeaponToUpgrade)
 	{
@@ -357,7 +344,7 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		return;
 	}
 
-	// Appliquer les stats
+	// Applique les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
@@ -437,7 +424,7 @@ void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 
-	// On spawn l'arme (invisible, c'est juste un objet logique)
+	// On spawn l'arme
 	AWeaponBase* NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
 
 	if (NewWeapon)
@@ -479,10 +466,10 @@ float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent con
 		// Active l'invicibilité
 		bIsInvincible = true;
 
-		// Lancer le timer de 2 secondes
+		// Lance le timer de 2 secondes
 		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 2.0f, false);
 
-		// Prévenir le Blueprint
+		// Prévient le Blueprint
 		OnInvincibilityChanged(true);
 	}
 
