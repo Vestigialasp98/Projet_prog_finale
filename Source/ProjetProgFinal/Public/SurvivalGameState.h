@@ -39,7 +39,7 @@ protected:
 	FOnKillsUpdated OnKillsUpdated;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnVictory();
+	void OnVictory(bool IsBossDead);
 
 	// Stats du boss:
 
@@ -49,7 +49,7 @@ protected:
 
 	// Le temps d'apparition en secondes 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss Config")
-	float BossSpawnTime = 60.0f; // 10 mins
+	float BossSpawnTime = 300.0f; // 5 mins
 
 	// Distance devant le joueur et le boss
 	UPROPERTY(EditDefaultsOnly, Category = "Boss Config")
@@ -65,7 +65,7 @@ public:
 	void IncrementKillCount();
 
 	UFUNCTION(BlueprintCallable)
-	void TriggerVictory();
+	void TriggerVictory(bool GameStatus);
 
 private:
 	bool bBossHasSpawned = false;
