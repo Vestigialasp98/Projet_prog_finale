@@ -18,10 +18,11 @@ class PROJETPROGFINAL_API AEnemyBase : public ACharacter
 public:
 	AEnemyBase();
 
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 protected:
 	virtual void BeginPlay() override;
-
-	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 
 	// Fonction appelée quand l'acteur dépasse un offset du monde (Z)
 	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
@@ -50,7 +51,7 @@ public:
 	// La fonction override standard d'Unreal pour recevoir des coups
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-	void Die();
+	virtual void Die();
 
 	UPROPERTY()
 	AEnemyPoolManager* PoolManagerRef;

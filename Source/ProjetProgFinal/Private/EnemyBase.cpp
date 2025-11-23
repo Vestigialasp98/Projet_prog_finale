@@ -16,10 +16,13 @@ AEnemyBase::AEnemyBase()
 	Tags.Add(FName("Enemy"));
 
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
-	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("EnemyProfile"));
 
 	GetCharacterMovement()->bUseRVOAvoidance = true;
 	GetCharacterMovement()->AvoidanceWeight = 0.5f;
+
+	GetCharacterMovement()->bEnablePhysicsInteraction = false;
+	GetCapsuleComponent()->CanCharacterStepUpOn = ECB_No;
 
 	GetCharacterMovement()->MaxDepenetrationWithGeometry = 500.0f;
 	GetCharacterMovement()->MaxDepenetrationWithPawn = 100.0f;
@@ -31,8 +34,9 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
+
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyBase::OnOverlapBegin);
 	
-	// Trouve le manager une bonne fois pour toutes
 	AActor* ManagerActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyPoolManager::StaticClass());
 	PoolManagerRef = Cast<AEnemyPoolManager>(ManagerActor);
 }
@@ -82,16 +86,14 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	return ActualDamage;
 }
 
-void AEnemyBase::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+void AEnemyBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-
 	// Vérifie si on touche le Joueur
-	if (Other && Other->IsA(AProjetProgFinalCharacter::StaticClass()))
+	if (OtherActor && OtherActor->IsA(AProjetProgFinalCharacter::StaticClass()))
 	{
 		// Applique les dégâts
 		UGameplayStatics::ApplyDamage(
-			Other,              // La victime (Le joueur)
+			OtherActor,          // La victime (Le joueur)
 			AttackDamage,       // Le montant
 			GetController(),    // L'instigateur (l'ennemi)
 			this,               
@@ -102,8 +104,6 @@ void AEnemyBase::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiv
 
 void AEnemyBase::FellOutOfWorld(const UDamageType& dmgType)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Ennemi tombé dans le vide -> Recyclage immédiat"));
-
 	if (PoolManagerRef)
 	{
 		CurrentHealth = MaxHealth; // Reset PV

@@ -39,7 +39,7 @@ void ASwipeWeapon::Attack()
     FVector SpawnLocation = MyOwner->GetActorLocation() + AttackRotation.Vector() * 150.f;
     FRotator SpawnRotation = AttackRotation;
 
-    FRotator SpawnRotationVFX = MyOwner->GetActorRotation();
+    FRotator SpawnRotationVFX = AttackRotation;
     SpawnRotationVFX.Yaw += 180.f;
 
     // Spawn VFX
@@ -86,6 +86,7 @@ AActor* ASwipeWeapon::FindClosestEnemy(const FVector& Origin)
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
     ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
+    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
 
     TArray<AActor*> ActorsToIgnore;
     ActorsToIgnore.Add(GetOwner());
