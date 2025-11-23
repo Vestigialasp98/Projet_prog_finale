@@ -81,7 +81,7 @@ void ASurvivalGameState::IncrementKillCount()
 	OnKillsUpdated.Broadcast(EnemiesKilled);
 }
 
-void ASurvivalGameState::TriggerVictory()
+void ASurvivalGameState::TriggerVictory(bool GameStatus)
 {
-	OnVictory();
+	OnVictory(GameStatus);
 }

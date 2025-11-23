@@ -24,11 +24,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Stats")
 	float BossDamage = 50.f;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Boss")
 	void PlayDeathSequence();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void UpdateBossHealthUI();
 
 	void FreezeAllEnemies();
 

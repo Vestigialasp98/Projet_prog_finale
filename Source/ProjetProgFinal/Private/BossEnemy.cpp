@@ -86,3 +86,13 @@ void ABossEnemy::FreezeAllEnemies()
     }
 }
 
+float ABossEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// Applique les dégâts
+	
+    UpdateBossHealthUI();
+
+	return ActualDamage;
+}
