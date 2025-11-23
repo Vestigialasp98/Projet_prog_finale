@@ -2,7 +2,7 @@
 
 #include "ProjetProgFinalCharacter.h"
 #include <AttackBox.h>
-#include  "PlayerDataAsset.h"
+#include "PlayerDataAsset.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,11 +13,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
-DECLARE_LOG_CATEGORY_EXTERN(LogPlayerAttack, Log, All);
-DEFINE_LOG_CATEGORY(LogPlayerAttack);
-
 
 //////////////////////////////////////////////////////////////////////////
 // AProjetProgFinalCharacter
@@ -26,18 +25,16 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+	   
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...  
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -45,22 +42,20 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// --- MODIFICATION POUR CAMÉRA STATIQUE ---
-
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	
-	// Longueur de la "perche" de la caméra (distance par rapport au joueur)
+	// Longueur de la "perche" de la caméra
 	CameraBoom->TargetArmLength = 1000.0f; 
 	
 	// On fixe la rotation du boom pour qu'il regarde d'en haut (ex: -70 degrés)
 	CameraBoom->SetRelativeRotation(FRotator(-70.0f, 0.0f, 0.0f));
 
-	// On DÉSACTIVE la rotation du boom par la souris/contrôleur
+	// Désactive la rotation du boom par la souris/contrôleur
 	CameraBoom->bUsePawnControlRotation = false; 
 
-	// On s'assure que le boom ne tourne pas bizarrement si le personnage s'incline
+	// S'assure que le boom ne tourne pas bizarrement si le personnage s'incline
 	CameraBoom->bInheritPitch = false;
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
@@ -72,18 +67,18 @@ AProjetProgFinalCharacter::AProjetProgFinalCharacter()
 	// La caméra elle-même ne doit pas tourner par rapport au boom
 	FollowCamera->bUsePawnControlRotation = false; 
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	// --- Valeurs de base du character ---
-	MaxHealth = 120;
-	CurrentHealth = 120;
+	MaxHealth = 100;
+	CurrentHealth = 100;
 	MovementSpeed = 500.f;
+	HealthRegenAmount = 0.0f;
+	GlobalDamageMultiplier = 1.0f;
+	bIsInvincible = false;
 
 	CurrentEXP = 0.0f;
 	EXPToNextLevel = 100.f;
-	CurrentPlayerLevel = 1;
-	bIsChoosingUpgrade = false;
+	CurrentPlayerLevel = 1;	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +92,8 @@ void AProjetProgFinalCharacter::BeginPlay()
 		// Crée l'arme si elle existe
 		AddWeapon(StartingWeaponClass, StartingWeaponData);
 	}
+
+	GetWorldTimerManager().SetTimer(RegenTimerHandle, this, &AProjetProgFinalCharacter::TriggerHealthRegen, 1.0f, true); // Tout les 1 secondes
 }
 
 // Input
@@ -120,14 +117,11 @@ void AProjetProgFinalCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Move);
-
-		// Looking
-		// EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjetProgFinalCharacter::Look);
 	}
 }
 
@@ -156,8 +150,6 @@ void AProjetProgFinalCharacter::Move(const FInputActionValue& Value)
 
 void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 {
-	// (Cette fonction n'est plus appelée, mais on la laisse au cas où)
-	
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -169,8 +161,24 @@ void AProjetProgFinalCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void AProjetProgFinalCharacter::TriggerHealthRegen()
+{
+	if (HealthRegenAmount > 0 && CurrentHealth < MaxHealth)
+	{
+		CurrentHealth += HealthRegenAmount;
+
+		if (CurrentHealth > MaxHealth)
+		{
+			CurrentHealth = MaxHealth;
+		}
+
+		UpdateHealthUI();
+	}
+}
+
 void AProjetProgFinalCharacter::AddEXP(float Amount)
 {
+	// Si on choisit deja l'upgrade, prend l'exp mais ne level up pas
 	if (bIsChoosingUpgrade)
 	{
 		CurrentEXP += Amount;
@@ -180,25 +188,19 @@ void AProjetProgFinalCharacter::AddEXP(float Amount)
 	CurrentEXP += Amount;
 	bool bDidLevelUp = false;
 
+	// Level up
 	while (CurrentEXP >= EXPToNextLevel)
 	{
 		bDidLevelUp = true;
 		bIsChoosingUpgrade = true;
 
-		float OldEXPToNextLevel = EXPToNextLevel;
-
-		// Gerer la logique de Level Up
-		CurrentPlayerLevel++;
-		EXPToNextLevel *= 1.2; // Multiplicateur pour d'EXP avoir pour level up
-
-		UpdateEXP_UI(0.0f, EXPToNextLevel, CurrentPlayerLevel);
+		UpdateEXP_UI(0.0f, EXPToNextLevel * 1.2f, CurrentPlayerLevel + 1);
 		ShowLevelUpScreen();
-
-		CurrentEXP -= OldEXPToNextLevel;
 
 		break;
 	}
 
+	// Augmente l'EXP
 	if (!bDidLevelUp)
 	{
 		UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
@@ -210,7 +212,7 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 	// Variable locale
 	TArray<UDA_UpgradeBase*> ValidOptions;
 
-	// Verifie chacun des upgrades
+	// Vérifie chacun des upgrades
 	for (UDA_UpgradeBase* Upgrade : AllAvailableUpgrades)
 	{
 		if (!Upgrade) continue;
@@ -258,7 +260,7 @@ TArray<UDA_UpgradeBase*> AProjetProgFinalCharacter::GetUpgradeOptions(int32 NumO
 		}
 	}
 
-	// --- MELANGE ALEATOIRE ---
+	// --- MÉLANGE ALÉATOIRE ---
 	TArray<UDA_UpgradeBase*> FinalOptions;
 
 	for (int32 i = 0; i < NumOptions; ++i)
@@ -306,12 +308,17 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 {
 	if (!ChosenUpgrade) return;
 
-	// Mettre a jour le niveau
+	// Met à jour le niveau
 	const int32 CurrentUpgradeLevel = OwnedUpgrades.FindRef(ChosenUpgrade);
 	const int32 NewUpgradeLevel = CurrentUpgradeLevel + 1; // Augmente de niveau
-	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met a jour la map
+	OwnedUpgrades.Add(ChosenUpgrade, NewUpgradeLevel); // Met à jour la map
 
-	// Trouver l'arme cible
+	// Gére la logique de Level Up
+	CurrentPlayerLevel++;
+	CurrentEXP -= EXPToNextLevel;
+	EXPToNextLevel *= 1.2; // Multiplicateur pour l'EXP à avoir pour level up
+
+	// Trouve l'arme cible
 	AWeaponBase* TargetWeapon = nullptr;
 	if (ChosenUpgrade->WeaponToUpgrade)
 	{
@@ -337,16 +344,16 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 		return;
 	}
 
-	// Appliquer les stats
+	// Applique les stats
 	if (ChosenUpgrade->LevelDetails.IsValidIndex(NewUpgradeLevel - 1))
 	{
 		const FLevelUpData& LevelData = ChosenUpgrade->LevelDetails[NewUpgradeLevel - 1];
 
-		// On cherche quels sont les valeurs a appliquer dans la map
+		// On cherche quels sont les valeurs à appliquer dans la map
 		for (const TPair<EPlayerStatType, float>& StatPair : LevelData.StatsToApply)
 		{
 			EPlayerStatType Stat = StatPair.Key;
-			float Value = StatPair.Value;       // La valeur trouve dans la bonne KEY de la map
+			float Value = StatPair.Value;       // La valeur trouvé dans la bonne KEY de la map
 
 			// Update les valeurs dependant de la KEY dans StatsToApply
 			switch (Stat)
@@ -359,6 +366,10 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 
 			case EPlayerStatType::Speed:
 				GetCharacterMovement()->MaxWalkSpeed *= Value;
+				break;
+
+			case EPlayerStatType::HealthRegen:
+				HealthRegenAmount += Value;
 				break;
 
 			case EPlayerStatType::WeaponDamage:
@@ -382,14 +393,28 @@ void AProjetProgFinalCharacter::ApplyUpgrade(UDA_UpgradeBase* ChosenUpgrade)
 					TargetWeapon->CurrentHitboxScale *= Value;
 				}
 				break;
+
+			case EPlayerStatType::GlobalDamage:
+				GlobalDamageMultiplier *= Value;
+				
+				for (AWeaponBase* Weapon : ActiveWeapons)
+				{
+					if (Weapon)
+					{
+						Weapon->CurrentDamage *= Value;
+					}
+				}
+				break;
+
 			}
 		}
 	}
 
 	bIsChoosingUpgrade = false;
 
-	// Relance la verification d'EXP 
+	// Relance la vérification d'EXP 
 	AddEXP(0.0f);
+	UpdateEXP_UI(CurrentEXP, EXPToNextLevel, CurrentPlayerLevel);
 }
 
 void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, UPlayerDataAsset* InitData)
@@ -399,14 +424,63 @@ void AProjetProgFinalCharacter::AddWeapon(TSubclassOf<AWeaponBase> WeaponClass, 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 
-	// On spawn l'arme (invisible, c'est juste un objet logique)
+	// On spawn l'arme
 	AWeaponBase* NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
 
 	if (NewWeapon)
 	{
 		NewWeapon->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 		NewWeapon->InitWeapon(InitData); // Ça lance le timer tout seul
+		NewWeapon->CurrentDamage *= GlobalDamageMultiplier;
 		ActiveWeapons.Add(NewWeapon);
 	}
 }
 
+float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	// Si invincible, refuse les dégats
+	if (bIsInvincible)
+	{
+		return 0.0f;
+	}
+
+	// Appel au parent
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// Appliquer les dégats
+	int32 DamageInt = FMath::RoundToInt(ActualDamage);
+	CurrentHealth -= DamageInt;
+
+	// Vérifie s'il est mort
+	if (CurrentHealth <= 0)
+	{
+		CurrentHealth = 0;
+		OnGameOver();
+		
+	}
+	else
+	{
+		// Active l'invicibilité
+		bIsInvincible = true;
+
+		// Lance le timer de 2 secondes
+		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 2.0f, false);
+
+		// Prévient le Blueprint
+		OnInvincibilityChanged(true);
+	}
+
+	// Update Health UI
+	UpdateHealthUI();
+
+	return ActualDamage;
+}
+
+void AProjetProgFinalCharacter::EndInvincibility()
+{
+	// Le temps est écoulé, on redevient vulnérable
+	bIsInvincible = false;
+
+	// Prévenir le Blueprint (Arrêter le clignotement)
+	OnInvincibilityChanged(false);
+}
