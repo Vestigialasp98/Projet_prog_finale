@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "EnemyBase.h"
 // On inclut la définition complète car TObjectPtr en a besoin
 #include "MyEnemyArchetype.h"
 #include "EnemyPoolManager.generated.h"
@@ -106,6 +107,8 @@ private:
 
 	// Spawn un ennemi depuis un pool spécifique
 	void SpawnEnemyFromPool(int32 PoolIndex, FEnemyPool& Pool);
+
+	void SpawnBoss();
 
 	// Le handle pour le timer de 10s
 	FTimerHandle TeleportTimerHandle;

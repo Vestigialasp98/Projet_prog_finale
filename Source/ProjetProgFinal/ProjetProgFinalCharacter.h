@@ -141,9 +141,6 @@ protected:
 
 	float GlobalDamageMultiplier;
 
-	// --- SYSTEME D'INVICIBILITE APRES HIT ---
-	bool bIsInvincible = false;
-
 	// Le timer pour arrêter l'invincibilité
 	FTimerHandle InvincibilityTimerHandle;
 
@@ -153,6 +150,9 @@ protected:
 	// Événement pour le Blueprint (pour faire clignoter le perso rouge/transparent)
 	UFUNCTION(BlueprintImplementableEvent, Category = "Visuals")
 	void OnInvincibilityChanged(bool bIsInvincibleNow);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void OnGameOver();
 
 public:
 	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
@@ -164,6 +164,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UPlayerDataAsset* StartingWeaponData;
+
+	// --- SYSTEME D'INVICIBILITE APRES HIT ---
+	bool bIsInvincible = false;
 
 public:
 	// --- FONCTIONS PUBLIQUES ---

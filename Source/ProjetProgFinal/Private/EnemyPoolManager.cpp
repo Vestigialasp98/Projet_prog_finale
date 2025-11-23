@@ -200,7 +200,7 @@ void AEnemyPoolManager::SpawnInitialPool()
 	{
 		TotalEnemies += Pool.PooledEnemies.Num();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("📦 POOL CRÉÉE: %d ennemis au total dans %d pools"), TotalEnemies, EnemyPools.Num());
+	UE_LOG(LogTemp, Warning, TEXT("POOL CRÉÉE: %d ennemis au total dans %d pools"), TotalEnemies, EnemyPools.Num());
 }
 
 void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
@@ -213,7 +213,7 @@ void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
 		MyEnemy->CurrentHealth = MyEnemy->MaxHealth;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("♻️ RECYCLAGE: Ennemi %s remis dans la pool (inactif)"), *Enemy->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("RECYCLAGE: Ennemi %s remis dans la pool (inactif)"), *Enemy->GetName());
 
 	// Cache l'acteur
 	Enemy->SetActorHiddenInGame(true);
@@ -256,7 +256,7 @@ void AEnemyPoolManager::ActivateEnemy(ACharacter* Enemy, const FVector& Teleport
 {
 	if (!Enemy || !Archetype) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("⚡ ACTIVATION: Ennemi %s sorti de la pool (actif)"), *Enemy->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("ACTIVATION: Ennemi %s sorti de la pool (actif)"), *Enemy->GetName());
 
 	// Téléporte à la position visible
 	Enemy->SetActorLocation(TeleportLocation);

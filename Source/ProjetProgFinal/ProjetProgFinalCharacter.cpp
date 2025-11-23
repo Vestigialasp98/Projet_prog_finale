@@ -451,14 +451,11 @@ float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent con
 	int32 DamageInt = FMath::RoundToInt(ActualDamage);
 	CurrentHealth -= DamageInt;
 
-	// Debug pour voir si ça marche
-	UE_LOG(LogTemp, Warning, TEXT("OUCH! Pris %d degats. PV restants : %d"), DamageInt, CurrentHealth);
-
 	// Vérifie s'il est mort
 	if (CurrentHealth <= 0)
 	{
 		CurrentHealth = 0;
-		// GameOver()
+		OnGameOver();
 		
 	}
 	else
