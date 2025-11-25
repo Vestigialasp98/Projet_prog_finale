@@ -455,20 +455,44 @@ float AProjetProgFinalCharacter::TakeDamage(float DamageAmount, FDamageEvent con
 	if (CurrentHealth <= 0)
 	{
 		CurrentHealth = 0;
-		OnGameOver();
-		
+
+		if (DeathSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+		}
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		GetMesh()->SetSimulatePhysics(true);
+
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			DisableInput(PC);
+			PC->SetShowMouseCursor(false);
+		}
+
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.2f);
+
+		GetWorldTimerManager().SetTimer(GameOverTimerHandle, this, &AProjetProgFinalCharacter::TriggerGameOver, 1.0f, false);
 	}
+
 	else
 	{
-		// Active l'invicibilité
+		if (HitSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+		}
+
+		// Active l'invicibilite
 		bIsInvincible = true;
 
-		// Lance le timer de 2 secondes
-		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 2.0f, false);
+		GetWorldTimerManager().SetTimer(InvincibilityTimerHandle, this, &AProjetProgFinalCharacter::EndInvincibility, 1.2f, false); // Invincible 1.2s
 
-		// Prévient le Blueprint
+		// Update blueprint
 		OnInvincibilityChanged(true);
 	}
+
 
 	// Update Health UI
 	UpdateHealthUI();
@@ -483,4 +507,11 @@ void AProjetProgFinalCharacter::EndInvincibility()
 
 	// Prévenir le Blueprint (Arrêter le clignotement)
 	OnInvincibilityChanged(false);
+}
+
+void AProjetProgFinalCharacter::TriggerGameOver()
+{
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+
+	OnGameOver();
 }

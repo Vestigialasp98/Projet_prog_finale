@@ -59,8 +59,6 @@ void AAttackBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	// Verifie si c'est un ennemi (avec un tag)
 	if (OtherActor->ActorHasTag("Enemy"))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit Enemy! Sending Damage: %f"), DamageAmount);
-
 		// Applique les degats standards d'Unreal
 		UGameplayStatics::ApplyDamage(
 			OtherActor,

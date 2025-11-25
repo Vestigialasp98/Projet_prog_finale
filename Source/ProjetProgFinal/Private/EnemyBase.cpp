@@ -57,10 +57,10 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 
 	if (DamagePopupClass)
 	{
-		// Spawn un peu au-dessus de la tête (Z + 50 ou 100)
+		// Spawn un peu au-dessus de la tete
 		FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, 100.f);
 
-		// On ajoute un petit offset aléatoire en X/Y pour que les chiffres ne se superposent pas trop
+		// On ajoute un petit offset aleatoire
 		float RandomX = FMath::RandRange(-50.f, 50.f);
 		float RandomY = FMath::RandRange(-50.f, 50.f);
 		SpawnLocation += FVector(RandomX, RandomY, 0.f);
@@ -73,7 +73,7 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 
 		if (Popup)
 		{
-			// C'est ici qu'on passe le chiffre au Blueprint
+			// Passe le chiffre au Blueprint
 			Popup->UpdateDamageVisuals(ActualDamage);
 		}
 	}
@@ -93,7 +93,7 @@ void AEnemyBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	{
 		// Applique les dégâts
 		UGameplayStatics::ApplyDamage(
-			OtherActor,          // La victime (Le joueur)
+			OtherActor,         // La victime (Le joueur)
 			AttackDamage,       // Le montant
 			GetController(),    // L'instigateur (l'ennemi)
 			this,               
@@ -107,6 +107,9 @@ void AEnemyBase::FellOutOfWorld(const UDamageType& dmgType)
 	if (PoolManagerRef)
 	{
 		CurrentHealth = MaxHealth; // Reset PV
+
+		// UE_LOG(LogTemp, Warning, TEXT("RECYCLAGE : The enemy '%s' fell of the world"), *GetName());
+
 		PoolManagerRef->RecycleEnemy(this);
 	}
 	else
@@ -124,18 +127,22 @@ void AEnemyBase::Die()
 		GS->IncrementKillCount();
 	}
 
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+	}
+
 	if (LootDropClass)
 	{
-		// On spawn un peu au-dessus du sol pour éviter que ça passe à travers
+		// On spawn un peu au-dessus du sol pour eviter que ca passe à travers
 		FVector SpawnLoc = GetActorLocation() + FVector(0.f, 0.f, 50.f);
 
-		// SpawnActor crée l'objet dans le monde
 		GetWorld()->SpawnActor<AActor>(LootDropClass, SpawnLoc, FRotator::ZeroRotator);
 	}
 
 	if (PoolManagerRef)
 	{
-		// On remet la vie à fond pour la prochaine fois
+		// On remet la vie a fond pour la prochaine fois
 		CurrentHealth = MaxHealth;
 
 		// On retourne dans la boite
@@ -143,7 +150,7 @@ void AEnemyBase::Die()
 	}
 	else
 	{
-		// Filet de sécurité si le manager n'est pas trouvé : on détruit vraiment
+		// Filet de sécurité si le manager n'est pas trouve
 		Destroy();
 	}
 }

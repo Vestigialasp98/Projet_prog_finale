@@ -79,7 +79,7 @@ AActor* AProjectileWeapon::FindClosestEnemy(const FVector& Origin)
         Origin,
         AutoAimRadius,
         ObjectTypes,
-        AActor::StaticClass(), // On filtre grossièrement sur Actor
+        AActor::StaticClass(), // On filtre grossierement sur Actor
         ActorsToIgnore,
         OverlappedActors
     );

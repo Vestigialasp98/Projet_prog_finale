@@ -28,14 +28,14 @@ void AMyEnemySpawner::BeginPlay()
 	// On vérifie si un Data Asset a bien été assigné dans l'éditeur.
 	if (!IsValid(EnemyArchetype))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("EnemySpawner (%s) n'a pas d'EnemyArchetype assigné."), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("EnemySpawner (%s) n'a pas d'EnemyArchetype assigné."), *GetName());
 		return;
 	}
 
 	// On vérifie si la recette contient bien une classe d'ennemi.
 	if (!IsValid(EnemyArchetype->EnemyClass))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("EnemyArchetype (%s) n'a pas d'EnemyClass valide."), *EnemyArchetype->GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("EnemyArchetype (%s) n'a pas d'EnemyClass valide."), *EnemyArchetype->GetName());
 		return;
 	}
 
@@ -101,13 +101,13 @@ void AMyEnemySpawner::BeginPlay()
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Échec du lancement du BT : Le contrôleur de %s n'est pas un AAIController."), *SpawnedEnemy->GetName());
+				// UE_LOG(LogTemp, Warning, TEXT("Échec du lancement du BT : Le contrôleur de %s n'est pas un AAIController."), *SpawnedEnemy->GetName());
 			}
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Échec du spawn pour l'archétype %s !"), *EnemyArchetype->GetName());
+		// UE_LOG(LogTemp, Error, TEXT("Échec du spawn pour l'archétype %s !"), *EnemyArchetype->GetName());
 	}
 }
 

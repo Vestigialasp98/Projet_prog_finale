@@ -18,7 +18,7 @@ void UMyEnemyArchetype::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	// Sanity check simple : prévenir si la classe n’est pas définie
 	if (!EnemyClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UMyEnemyArchetype '%s' has no EnemyClass set."), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("UMyEnemyArchetype '%s' has no EnemyClass set."), *GetName());
 	}
 }
 #endif

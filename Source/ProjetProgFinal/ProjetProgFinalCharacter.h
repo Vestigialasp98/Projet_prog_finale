@@ -154,6 +154,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
 	void OnGameOver();
 
+	// SOUNDS
+	FTimerHandle GameOverTimerHandle;	
+
+	void TriggerGameOver();
+
 public:
 	// --- STATS DU CHARACTER POUR L'ATTAQUE ---
 	UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -168,7 +173,13 @@ public:
 	// --- SYSTEME D'INVICIBILITE APRES HIT ---
 	bool bIsInvincible = false;
 
-public:
+	// --- SOUNDS ---
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundBase* HitSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundBase* DeathSound;
+
 	// --- FONCTIONS PUBLIQUES ---
 
 	// Ajout d'EXP

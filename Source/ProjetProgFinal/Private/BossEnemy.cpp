@@ -48,12 +48,12 @@ void ABossEnemy::FreezeAllEnemies()
 
     for (AActor* Actor : FoundEnemies)
     {
-        // Ne pas geler le Boss lui-même (on veut qu'il joue son anim de mort)
+        // Ne pas geler le boss
         if (Actor == this) continue;
 
         if (AEnemyBase* Enemy = Cast<AEnemyBase>(Actor))
         {
-            // Coupe le cerveau (IA)
+            // Coupe l'AI
             AAIController* AI = Cast<AAIController>(Enemy->GetController());
             if (AI && AI->GetBrainComponent())
             {
@@ -65,7 +65,7 @@ void ABossEnemy::FreezeAllEnemies()
                 Enemy->GetCharacterMovement()->StopMovementImmediately();
                 Enemy->GetCharacterMovement()->DisableMovement();
             }
-            // Coupe les animations (Optionnel, pour faire un effet "Temps arrêté")
+            // Coupe les animations
             if (Enemy->GetMesh())
             {
                 Enemy->GetMesh()->bPauseAnims = true;
@@ -81,8 +81,6 @@ void ABossEnemy::FreezeAllEnemies()
         {
             Player->DisableInput(PC);
         }
-
-        // Si tu as accès à bIsInvincible, mets-le à true, sinon ignore.
     }
 }
 

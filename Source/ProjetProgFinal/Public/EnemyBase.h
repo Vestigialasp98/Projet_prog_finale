@@ -53,6 +53,9 @@ public:
 
 	virtual void Die();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundBase* DeathSound;
+
 	UPROPERTY()
 	AEnemyPoolManager* PoolManagerRef;
 };
