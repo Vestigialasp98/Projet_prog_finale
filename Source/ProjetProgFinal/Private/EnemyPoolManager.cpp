@@ -10,14 +10,14 @@
 #include "AIController.h"
 #include "EnemyBase.h"
 #include "BehaviorTree/BehaviorTree.h"
-//#include "BehaviorTree/BrainComponent.h" // <-- nécessaire pour StopLogic
+//#include "BehaviorTree/BrainComponent.h" // StopLogic
 #include "../ProjetProgFinalCharacter.h"
 #include "GameFramework/PlayerController.h"
 
 AEnemyPoolManager::AEnemyPoolManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickInterval = 0.1f; // Tick toutes les 0.1s (10 Hz) pour économiser du CPU
+	PrimaryActorTick.TickInterval = 0.1f;
 }
 
 void AEnemyPoolManager::BeginPlay()
@@ -29,14 +29,13 @@ void AEnemyPoolManager::BeginPlay()
 
 	if (!CachedPlayerCharacter)
 	{
-		UE_LOG(LogTemp, Error, TEXT("EnemyPoolManager: Impossible de trouver 'AProjetProgFinalCharacter'. Le pooling va échouer."));
-		return; // On arrête tout si on ne trouve pas le joueur
+		return;
 	}
 
 	// Spawn tous les ennemis et les cache
 	SpawnInitialPool();
 
-	// Le spawn sera géré par Tick() avec les courbes
+	// Le spawn sera gere par Tick() avec les courbes
 }
 
 void AEnemyPoolManager::Tick(float DeltaTime)
@@ -45,7 +44,7 @@ void AEnemyPoolManager::Tick(float DeltaTime)
 
 	if (!CachedPlayerCharacter) return;
 
-	// Incrémente le temps de jeu
+	// Incremente le temps de jeu
 	GameTimeElapsed += DeltaTime;
 
 	// Traite chaque pool
@@ -88,7 +87,7 @@ FVector AEnemyPoolManager::GetRandomSpawnLocationAroundPlayer(float Distance)
 
 	FVector PlayerPos = CachedPlayerCharacter->GetActorLocation();
 
-	// Angle aléatoire (0 à 360 degrés en radians)
+	// Angle aleatoire
 	float RandomAngle = FMath::RandRange(0.0f, 2.0f * PI);
 
 	// Calcul trigonométrique simple (Cercle)
@@ -200,7 +199,8 @@ void AEnemyPoolManager::SpawnInitialPool()
 	{
 		TotalEnemies += Pool.PooledEnemies.Num();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("POOL CRÉÉE: %d ennemis au total dans %d pools"), TotalEnemies, EnemyPools.Num());
+
+	// UE_LOG(LogTemp, Warning, TEXT("POOL CRÉÉE: %d ennemis au total dans %d pools"), TotalEnemies, EnemyPools.Num());
 }
 
 void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
@@ -213,7 +213,7 @@ void AEnemyPoolManager::DeactivateEnemy(ACharacter* Enemy)
 		MyEnemy->CurrentHealth = MyEnemy->MaxHealth;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("RECYCLAGE: Ennemi %s remis dans la pool (inactif)"), *Enemy->GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("RECYCLAGE: Ennemi %s remis dans la pool (inactif)"), *Enemy->GetName());
 
 	// Cache l'acteur
 	Enemy->SetActorHiddenInGame(true);
@@ -256,7 +256,7 @@ void AEnemyPoolManager::ActivateEnemy(ACharacter* Enemy, const FVector& Teleport
 {
 	if (!Enemy || !Archetype) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("ACTIVATION: Ennemi %s sorti de la pool (actif)"), *Enemy->GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("ACTIVATION: Ennemi %s sorti de la pool (actif)"), *Enemy->GetName());
 
 	// Téléporte à la position visible
 	Enemy->SetActorLocation(TeleportLocation);

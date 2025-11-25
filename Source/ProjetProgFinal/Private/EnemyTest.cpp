@@ -32,8 +32,6 @@ float AEnemyTest::TakeDamage(float DamageAmount, struct FDamageEvent const& Dama
 
 	CurrentHealth -= ActualDamage;
 
-	UE_LOG(LogTemp, Warning, TEXT("Degat: %f / Vie restante: %f"), ActualDamage, CurrentHealth);
-
     if (DamagePopupClass)
     {
         // Spawn un peu au-dessus de la tête (Z + 50 ou 100)

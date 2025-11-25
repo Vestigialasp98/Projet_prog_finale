@@ -68,7 +68,7 @@ void ASurvivalGameState::Tick(float DeltaSeconds)
 					SpawnParams
 				);
 
-				UE_LOG(LogTemp, Warning, TEXT(" LE BOSS EST ARRIVÉ !"));
+				// UE_LOG(LogTemp, Warning, TEXT(" LE BOSS EST ARRIVÉ !"));
 			}
 		}
 	}
